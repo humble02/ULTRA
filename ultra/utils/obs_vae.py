@@ -5,6 +5,7 @@ import mujoco as mj
 import os
 import math
 from utils import torch_utils_mujoco
+from utils.box_pca import box_pca_axes
 from collections import OrderedDict
 
 def euler_from_quaternion(quat_angle):
@@ -105,7 +106,7 @@ def xyzw_to_wxyz(q):
 
 def _body_world_velocities(model, data, body_ids):
     """
-    Compute world-frame linear and angular velocities for each body COM
+    Compute world-frame linear and angular velocities for each body origin
     using Jacobians:  v = J * qvel
     Returns:
         lin (B, Nb, 3), ang (B, Nb, 3) as torch tensors with B=1
@@ -118,7 +119,7 @@ def _body_world_velocities(model, data, body_ids):
     ang = []
     for bid in body_ids:
         jacp.fill(0.0); jacr.fill(0.0)
-        # Jacobian at body center of mass (world frame)
+        # Jacobian at the body origin (not mj_jacBodyCom).
         mj.mj_jacBody(model, data, jacp, jacr, bid)
         v_lin = jacp @ data.qvel
         v_ang = jacr @ data.qvel
@@ -131,7 +132,7 @@ def _body_world_velocities(model, data, body_ids):
 
 
 def _single_body_world_velocities(model, data, body_id):
-    """World-frame linear & angular COM velocities via Jacobians."""
+    """World-frame linear & angular body-origin velocities via Jacobians."""
     nv = model.nv
     jacp = np.zeros((3, nv), dtype=np.float64)
     jacr = np.zeros((3, nv), dtype=np.float64)
@@ -144,11 +145,12 @@ def _single_body_world_velocities(model, data, body_id):
 
 def _gather_contact_forces(model, data, body_ids):
     """
-    MuJoCo external wrenches per body in world frame: data.cfrc_ext[body, 0:3] are forces.
+    World-frame external forces; MuJoCo spatial wrenches use [torque, force].
     Returns (1, Nb, 3) torch tensor.
     """
-    # cfrc_ext is (nb, 6): [fx, fy, fz, tx, ty, tz]
-    f_world = data.cfrc_ext[body_ids, :3].copy()
+    # These arrays are not updated by mj_step unless a sensor requires them.
+    mj.mj_rnePostConstraint(model, data)
+    f_world = data.cfrc_ext[body_ids, 3:6].copy()
     return torch.from_numpy(f_world).unsqueeze(0).to(torch.float32)
 
 
@@ -583,15 +585,8 @@ class MujocoObs:
         }
 
         if task_mode == "full_track":
-            # MuJoCo full_track = pure humanoid reference tracking: object modalities and the command goal are
-            # hidden and the global goal follows the next reference frame (see compute_humanoid_observations_max).
-            # NOTE: the IsaacGym playback preset of the same name (UltraDistillObjV2Point.configure_task_mode)
-            # keeps every modality visible; sparse_track and object_obs are identical in both.
-            keep["obj_pos"] = False
-            keep["obj_point"] = False
-            keep["obj_trans"] = False
-            keep["obj_rot"] = False
-            keep["goal"] = False
+            # Match the native Gym preset: dense tracking exposes every modality.
+            pass
         elif task_mode == "sparse_track":
             keep["obj_pos"] = False
             keep["obj_point"] = False
@@ -842,12 +837,12 @@ class MujocoObs:
             need_new_goal = False
             is_frozen = False  # Whether to freeze ts and long_term_t
 
-            if episode_length <= 0:
+            if episode_length <= 1:
                 # First step of episode - always sample new goal
                 need_new_goal = True
                 self.current_goal_ts = None
                 self.frozen_ts = None
-            elif self.long_term_t.item() <= 1:
+            elif self.long_term_t.item() <= 0:
                 # Horizon exhausted - check if goal was achieved before sampling new one
                 if self.goal_achievement_enabled and self.current_goal_ts is not None:
                     goal_achieved = self._check_goal_achieved(data, self.current_goal_ts)
@@ -890,15 +885,7 @@ class MujocoObs:
                 next_ts = min(effective_ts + self.long_term_t.item(), self.max_episode_length-1)
                 self.current_goal_ts = next_ts
 
-            # Only decrement long_term_t if NOT frozen
-            if not is_frozen:
-                if not self.goal_achievement_enabled or need_new_goal:
-                    self.long_term_t = torch.clamp(self.long_term_t - 1, min=0)
-                else:
-                    # With goal achievement enabled, check if achieved before decrementing
-                    goal_achieved = self._check_goal_achieved(data, self.current_goal_ts)
-                    self.long_term_t = torch.clamp(self.long_term_t - 1, min=0)
-            # If frozen, don't decrement long_term_t - keep everything fixed
+            # Build the command with the same horizon as the target pose.
         else:
             # For teacher, use delta_t directly
             next_ts = min(ts + delta_t, self.max_episode_length-1)
@@ -930,6 +917,8 @@ class MujocoObs:
             task_obs_size = task_obs.shape[-1] if task_obs is not None else 0
             obs_final = self._finalize_student_obs(obs, obs_shape=obs_shape, task_obs_size=task_obs_size)
             self._append_goal_viz(obs_dict, ref_obs)
+            if not is_frozen:
+                self.long_term_t = torch.clamp(self.long_term_t - 1, min=0)
             return obs_final, obs_dict
         ig = compute_sdf(key_body_pose, obj_points_ig).view(-1, 3)
         heading_rot = torch_utils_mujoco.calc_heading_quat_inv(key_body_rot[:, 0, :])
@@ -961,7 +950,7 @@ class MujocoObs:
         return torch.cat((obs_1, obs_2), dim=-1)
 
     def _update_goal_phase(self, ig_norm, episode_length):
-        if episode_length <= 1:
+        if episode_length <= 0:
             self.prev_hand_ig_valid[:] = False
 
         ig_norm = ig_norm.squeeze(-1)
@@ -1278,25 +1267,12 @@ class MujocoObs:
             diff_imu_obs_all_local = imu_obs_ref_all_local - imu_obs_all
 
             root_pos = _body_pos[:, 0, :].clone()
-            # For full_track mode, use short-term (local) reference for global_goal
-            # Otherwise use long-term reference
-            if getattr(self, 'task_mode', None) == 'full_track':
-                # Use local reference (next 1 frame) for global_goal
-                _local_ref_body_pos = local_ref_obs[:, 84:201].view(-1, 39, 3)
-                ref_root_pos = _local_ref_body_pos[:, 0, :].clone()
-                diff_imu_for_global = diff_imu_obs_all_local
-            else:
-                # Use long-term reference (future_step frames) for global_goal
-                ref_root_pos = _ref_body_pos[:, 0, :].clone()
-                diff_imu_for_global = diff_imu_obs_all
+            # Gym uses the sampled future reference for global goals in every
+            # preset, while local goals use the next frame. XY stays in meters.
+            ref_root_pos = _ref_body_pos[:, 0, :].clone()
+            diff_imu_for_global = diff_imu_obs_all
             diff_root_pos = root_pos - ref_root_pos
             diff_root_pos_xy = diff_root_pos[..., :2]
-            diff_root_pos_xy_scale = diff_root_pos_xy.norm(dim=-1, keepdim=True)
-            diff_root_pos_xy = torch.where(
-                diff_root_pos_xy_scale < 0.3,
-                torch.zeros_like(diff_root_pos_xy),
-                diff_root_pos_xy / (diff_root_pos_xy_scale + 1e-8),
-            )
             # Local goal uses local reference (next step)
             local_goal = torch.cat((diff_imu_obs_all_local[..., 0:2], dof_pos_rand - ref_dof_pos_local), dim=-1)
             # Global goal uses long-term reference
@@ -1586,14 +1562,14 @@ class MujocoObs:
         corner_center = pca_corners.mean(dim=1, keepdim=True)
         centered_corners = pca_corners - corner_center
         cov = torch.matmul(centered_corners.transpose(1, 2), centered_corners) / float(centered_corners.shape[1])
-        _, pca_axes = torch.linalg.eigh(cov)
+        pca_axes = box_pca_axes(pca_corners, cov)
         aligned_corners = torch.matmul(centered_corners, pca_axes)
         local_min = aligned_corners.min(dim=1).values
         local_max = aligned_corners.max(dim=1).values
 
         # Oversample for visibility filtering
-        num_candidates = 256
         num_points = 64
+        num_candidates = max(num_points * 8, num_points)
         aligned_candidates, aligned_normals = _sample_box_surface_points(
             local_min,
             local_max,
@@ -1664,25 +1640,18 @@ class MujocoObs:
             occlusion_prob=point_occlusion_prob
         )
 
-        # Transform to robot-relative frame
-        heading_rot_expand = heading_rot.unsqueeze(1).expand(-1, num_points, -1)
+        # The trained policy consumes points in the full head-camera frame.
+        cam_rot_inv = torch_utils_mujoco.quat_inverse(noisy_camera_rot)
+        cam_rot_inv_expand = cam_rot_inv.unsqueeze(1).expand(-1, num_points, -1)
         relative_points = torch_utils_mujoco.quat_rotate(
-            heading_rot_expand.reshape(-1, 4),
-            (randomized_world - root_pos.unsqueeze(1)).reshape(-1, 3),
+            cam_rot_inv_expand.reshape(-1, 4),
+            (randomized_world - noisy_camera_pos.unsqueeze(1)).reshape(-1, 3),
         ).reshape(root_pos.shape[0], num_points, 3)
-        relative_points[:, :, 2] = randomized_world[:, :, 2]
 
         # Apply dropout mask
         if dropout_mask is not None:
             keep_mask = (~dropout_mask).float()
             relative_points = relative_points * keep_mask
-
-        diff_local_obj_pos_flat_scale = diff_local_obj_pos_flat.norm(dim=-1, keepdim=True)
-        diff_local_obj_pos_flat = torch.where(
-            diff_local_obj_pos_flat_scale < 0.3,
-            torch.zeros_like(diff_local_obj_pos_flat),
-            diff_local_obj_pos_flat / (diff_local_obj_pos_flat_scale + 1e-8),
-        )
 
         obs = torch.cat(
             [

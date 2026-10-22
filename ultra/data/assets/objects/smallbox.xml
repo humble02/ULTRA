@@ -20,6 +20,8 @@
 
   <worldbody>
     <body name="smallbox" pos="0 0 0.9" quat="1 0 0 0">
+      <!-- Nominal Gym 100% asset: exported actor mass, COM and full inertia. -->
+      <inertial pos="0.0023384732194244862 -0.0043774144724011421 -0.009782315231859684" mass="0.32918694615364075" fullinertia="0.0035813290160149336 0.0029809281695634127 0.0049257474020123482 0 0 0"/>
       <freejoint name="smallbox_free"/>
 
       <geom class="smallbox_phys"

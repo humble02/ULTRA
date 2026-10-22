@@ -1,0 +1,12 @@
+{
+  "purpose": "Source and configuration snapshot before the initialization fixes and mode-coverage experiment.",
+  "upstream_commit": "146ddd5f63987f9b41304b368e40f69990e63ec2",
+  "stopped_RL_updates": 2695,
+  "last_checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00008695.pth",
+  "last_checkpoint_sha256": "ca2884899ddb988c004087e5152425cf55b80b7b2fb1a4bdcb5b32c7cf69c619",
+  "initial_student_epoch": 6000,
+  "initial_student_checkpoint": "output/student_fresh_20261020/g1_student_vae/nn/g1_student_vae_00006000.pth",
+  "initial_student_sha256": "29ab7025c5f15e6b6d6aedd590a584de59863899be9b63122ef912e8a6fbf5bc",
+  "protocol": "20 fixed training-cohort motions, seed 42, Gym and MuJoCo, full_track and object_obs. Not a held-out paper benchmark.",
+  "weights_and_dataset": "Kept locally and excluded from new Git changes by .gitignore."
+}

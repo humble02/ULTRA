@@ -1138,7 +1138,16 @@ class UltraBuilder(network_builder.A2CBuilder):
                 context = context + self.mask_context_proj(mask_vec).unsqueeze(1)
             seq = torch.cat([context, tokens], dim=1)
             seq = self.pos_encoding(seq)
-            encoded = self.modal_transformer(seq)
+            # PPO must replay the same distribution before its first update.
+            # This PyTorch build's fused inference encoder differs measurably
+            # from its autograd path even with dropout=0. Use one path for
+            # rollout, training and deployment without changing model weights.
+            fastpath = torch.backends.mha.get_fastpath_enabled()
+            torch.backends.mha.set_fastpath_enabled(False)
+            try:
+                encoded = self.modal_transformer(seq)
+            finally:
+                torch.backends.mha.set_fastpath_enabled(fastpath)
             context_vec = encoded[:, 0]
             modal_tokens = encoded[:, 1:]
             flat_tokens = modal_tokens.reshape(batch, -1)

@@ -1,0 +1,1054 @@
+{
+  "student6000": {
+    "summary": {
+      "gym": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 13,
+          "task_success_rate": 0.65,
+          "strict_placement_successes": 8,
+          "carry_and_place_successes": 8,
+          "falls": 3,
+          "mean_final_box_error_m": 0.6008777149021626,
+          "median_final_box_error_m": 0.14465128630399704,
+          "mean_box_trajectory_rmse_m": 0.4650302160531282,
+          "mean_joint_trajectory_rmse_rad": 0.13606599904596806
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 2,
+          "task_success_rate": 0.1,
+          "strict_placement_successes": 1,
+          "carry_and_place_successes": 1,
+          "falls": 16,
+          "mean_final_box_error_m": 1.1885541461408138,
+          "median_final_box_error_m": 1.170579433441162,
+          "mean_box_trajectory_rmse_m": 0.86963125243783,
+          "mean_joint_trajectory_rmse_rad": 0.3878148913383484
+        }
+      },
+      "mujoco": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 12,
+          "task_success_rate": 0.6,
+          "strict_placement_successes": 6,
+          "carry_and_place_successes": 6,
+          "falls": 6,
+          "mean_final_box_error_m": 0.7043325567756827,
+          "median_final_box_error_m": 0.2320192772393337,
+          "mean_box_trajectory_rmse_m": 0.5002370831563919,
+          "mean_joint_trajectory_rmse_rad": 0.16343912011686465
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 3,
+          "task_success_rate": 0.15,
+          "strict_placement_successes": 1,
+          "carry_and_place_successes": 1,
+          "falls": 17,
+          "mean_final_box_error_m": 1.2703027103651396,
+          "median_final_box_error_m": 1.1707952969074107,
+          "mean_box_trajectory_rmse_m": 0.9517365752711185,
+          "mean_joint_trajectory_rmse_rad": 0.39977429668021686
+        }
+      }
+    },
+    "checkpoint_sha256": "29ab7025c5f15e6b6d6aedd590a584de59863899be9b63122ef912e8a6fbf5bc",
+    "manifest": {
+      "selection_seed": 20261019,
+      "rollout_seed": 42,
+      "checkpoint": "output/student_fresh_20261020/g1_student_vae/nn/g1_student_vae_00006000.pth",
+      "modes": [
+        "full_track",
+        "object_obs"
+      ],
+      "object_input": "points",
+      "latent_noise": "zero",
+      "selection": "Five motions per object, unscaled 100 assets, 120..900 frames, reference lift >=.2 m, terminal XY travel >=.5 m, absolute terminal height change <=.12 m. Chosen before observing policy outcomes.",
+      "task_success": "finite complete rollout, pelvis never below .25 m, terminal object position 3D distance <.3 m",
+      "strict_placement": "task success plus final 15 controls all within .3 m and vertical error <.1 m, object speed <.2 m/s, hand contact force absent and object-ground support present throughout final 15 controls",
+      "limitations": "Small in-distribution augmented training-dataset sample, one seed per motion. Other known sim differences retained. Not a held-out paper benchmark or an estimate for 080-size objects.",
+      "motions": [
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_026_097_090_075_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 388,
+          "reference_lift_m": 1.036850094795227,
+          "reference_xy_displacement_m": 1.2859209775924683,
+          "reference_final_height_change_m": -6.780028343200684e-06
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_078_075_085_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7370514273643494,
+          "reference_xy_displacement_m": 1.9299590587615967,
+          "reference_final_height_change_m": -2.5331974029541016e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_080_087_087_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7322031259536743,
+          "reference_xy_displacement_m": 1.963868260383606,
+          "reference_final_height_change_m": 0.008605808019638062
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_043_075_091_073_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 320,
+          "reference_lift_m": 0.5762747526168823,
+          "reference_xy_displacement_m": 1.883394718170166,
+          "reference_final_height_change_m": -0.0038102418184280396
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_046_123_127_077_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 338,
+          "reference_lift_m": 0.656574547290802,
+          "reference_xy_displacement_m": 2.8649139404296875,
+          "reference_final_height_change_m": -1.3127923011779785e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub12_plasticbox_052_073_103_080_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 398,
+          "reference_lift_m": 0.5847580432891846,
+          "reference_xy_displacement_m": 1.406278371810913,
+          "reference_final_height_change_m": 0.0034891515970230103
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_027_088_100_074_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 330,
+          "reference_lift_m": 0.7404152154922485,
+          "reference_xy_displacement_m": 0.8913178443908691,
+          "reference_final_height_change_m": -0.006589919328689575
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_043_095_101_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 274,
+          "reference_lift_m": 0.5521659255027771,
+          "reference_xy_displacement_m": 1.9125338792800903,
+          "reference_final_height_change_m": -0.008755415678024292
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_047_081_081_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 366,
+          "reference_lift_m": 0.6202865839004517,
+          "reference_xy_displacement_m": 1.0207353830337524,
+          "reference_final_height_change_m": -0.008965998888015747
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_073_094_103_077_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 376,
+          "reference_lift_m": 0.6502244472503662,
+          "reference_xy_displacement_m": 2.5813841819763184,
+          "reference_final_height_change_m": -0.005838453769683838
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_085_084_096_082_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 326,
+          "reference_lift_m": 0.702711284160614,
+          "reference_xy_displacement_m": 0.5728777647018433,
+          "reference_final_height_change_m": -0.0023455098271369934
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_086_121_086_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6758157014846802,
+          "reference_xy_displacement_m": 1.120110273361206,
+          "reference_final_height_change_m": -0.0017501041293144226
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_098_079_073_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6319456696510315,
+          "reference_xy_displacement_m": 1.0050361156463623,
+          "reference_final_height_change_m": -0.001746252179145813
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_074_077_076_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7912539839744568,
+          "reference_xy_displacement_m": 1.9171900749206543,
+          "reference_final_height_change_m": -0.0007991939783096313
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_092_082_087_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7936339378356934,
+          "reference_xy_displacement_m": 2.229212760925293,
+          "reference_final_height_change_m": -0.000798344612121582
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_010_078_075_076_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 242,
+          "reference_lift_m": 0.4281470775604248,
+          "reference_xy_displacement_m": 1.3369667530059814,
+          "reference_final_height_change_m": -0.06678730249404907
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_028_081_082_080_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 260,
+          "reference_lift_m": 0.5642982125282288,
+          "reference_xy_displacement_m": 0.6628620028495789,
+          "reference_final_height_change_m": -0.08921286463737488
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_010_093_091_075_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 378,
+          "reference_lift_m": 0.7024754285812378,
+          "reference_xy_displacement_m": 2.239978790283203,
+          "reference_final_height_change_m": -0.03607013821601868
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_072_082_091_077_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 408,
+          "reference_lift_m": 0.6967885494232178,
+          "reference_xy_displacement_m": 1.9562854766845703,
+          "reference_final_height_change_m": -0.030400574207305908
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_076_083_074_085_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 448,
+          "reference_lift_m": 0.9665960669517517,
+          "reference_xy_displacement_m": 1.7204573154449463,
+          "reference_final_height_change_m": -0.024922668933868408
+        }
+      ],
+      "carry_and_place_success": "strict placement success plus observed lift >=.2 m above reference start and >=10 hand-contact controls; derived separately from the preregistered terminal task-success metric",
+      "point_fixed_grid_sampling": true,
+      "epoch": 6000,
+      "evaluation_revision": "training4096_reference_pca_v1",
+      "cohort_source": "output/reproduction/student_10000_benchmark/manifest.json",
+      "training_log": "output/reproduction/student_fresh_20261020/training.log"
+    }
+  },
+  "RL500": {
+    "summary": {
+      "gym": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 16,
+          "task_success_rate": 0.8,
+          "strict_placement_successes": 11,
+          "carry_and_place_successes": 11,
+          "falls": 0,
+          "mean_final_box_error_m": 0.35599687453359363,
+          "median_final_box_error_m": 0.12047697603702545,
+          "mean_box_trajectory_rmse_m": 0.28666201457381246,
+          "mean_joint_trajectory_rmse_rad": 0.09445730522274971
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 4,
+          "task_success_rate": 0.2,
+          "strict_placement_successes": 2,
+          "carry_and_place_successes": 2,
+          "falls": 16,
+          "mean_final_box_error_m": 1.271581830456853,
+          "median_final_box_error_m": 1.193529486656189,
+          "mean_box_trajectory_rmse_m": 0.9694805078208446,
+          "mean_joint_trajectory_rmse_rad": 0.3791425921022892
+        }
+      },
+      "mujoco": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 14,
+          "task_success_rate": 0.7,
+          "strict_placement_successes": 9,
+          "carry_and_place_successes": 9,
+          "falls": 2,
+          "mean_final_box_error_m": 0.5021354652317405,
+          "median_final_box_error_m": 0.1888185353106103,
+          "mean_box_trajectory_rmse_m": 0.39801714874990246,
+          "mean_joint_trajectory_rmse_rad": 0.12902949750918152
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 3,
+          "task_success_rate": 0.15,
+          "strict_placement_successes": 0,
+          "carry_and_place_successes": 0,
+          "falls": 16,
+          "mean_final_box_error_m": 1.3209969447355725,
+          "median_final_box_error_m": 1.2866058227478587,
+          "mean_box_trajectory_rmse_m": 0.9938213856696608,
+          "mean_joint_trajectory_rmse_rad": 0.3804620547669504
+        }
+      }
+    },
+    "checkpoint_sha256": "b96e625123f0db4716d9ad835696f896b8756506187a79ae2f5c11af6003b22e",
+    "manifest": {
+      "selection_seed": 20261019,
+      "rollout_seed": 42,
+      "checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00006500.pth",
+      "modes": [
+        "full_track",
+        "object_obs"
+      ],
+      "object_input": "points",
+      "latent_noise": "zero",
+      "selection": "Five motions per object, unscaled 100 assets, 120..900 frames, reference lift >=.2 m, terminal XY travel >=.5 m, absolute terminal height change <=.12 m. Chosen before observing policy outcomes.",
+      "task_success": "finite complete rollout, pelvis never below .25 m, terminal object position 3D distance <.3 m",
+      "strict_placement": "task success plus final 15 controls all within .3 m and vertical error <.1 m, object speed <.2 m/s, hand contact force absent and object-ground support present throughout final 15 controls",
+      "limitations": "Small in-distribution augmented training-dataset sample, one seed per motion. Other known sim differences retained. Not a held-out paper benchmark or an estimate for 080-size objects.",
+      "motions": [
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_026_097_090_075_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 388,
+          "reference_lift_m": 1.036850094795227,
+          "reference_xy_displacement_m": 1.2859209775924683,
+          "reference_final_height_change_m": -6.780028343200684e-06
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_078_075_085_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7370514273643494,
+          "reference_xy_displacement_m": 1.9299590587615967,
+          "reference_final_height_change_m": -2.5331974029541016e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_080_087_087_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7322031259536743,
+          "reference_xy_displacement_m": 1.963868260383606,
+          "reference_final_height_change_m": 0.008605808019638062
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_043_075_091_073_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 320,
+          "reference_lift_m": 0.5762747526168823,
+          "reference_xy_displacement_m": 1.883394718170166,
+          "reference_final_height_change_m": -0.0038102418184280396
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_046_123_127_077_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 338,
+          "reference_lift_m": 0.656574547290802,
+          "reference_xy_displacement_m": 2.8649139404296875,
+          "reference_final_height_change_m": -1.3127923011779785e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub12_plasticbox_052_073_103_080_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 398,
+          "reference_lift_m": 0.5847580432891846,
+          "reference_xy_displacement_m": 1.406278371810913,
+          "reference_final_height_change_m": 0.0034891515970230103
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_027_088_100_074_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 330,
+          "reference_lift_m": 0.7404152154922485,
+          "reference_xy_displacement_m": 0.8913178443908691,
+          "reference_final_height_change_m": -0.006589919328689575
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_043_095_101_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 274,
+          "reference_lift_m": 0.5521659255027771,
+          "reference_xy_displacement_m": 1.9125338792800903,
+          "reference_final_height_change_m": -0.008755415678024292
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_047_081_081_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 366,
+          "reference_lift_m": 0.6202865839004517,
+          "reference_xy_displacement_m": 1.0207353830337524,
+          "reference_final_height_change_m": -0.008965998888015747
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_073_094_103_077_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 376,
+          "reference_lift_m": 0.6502244472503662,
+          "reference_xy_displacement_m": 2.5813841819763184,
+          "reference_final_height_change_m": -0.005838453769683838
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_085_084_096_082_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 326,
+          "reference_lift_m": 0.702711284160614,
+          "reference_xy_displacement_m": 0.5728777647018433,
+          "reference_final_height_change_m": -0.0023455098271369934
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_086_121_086_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6758157014846802,
+          "reference_xy_displacement_m": 1.120110273361206,
+          "reference_final_height_change_m": -0.0017501041293144226
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_098_079_073_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6319456696510315,
+          "reference_xy_displacement_m": 1.0050361156463623,
+          "reference_final_height_change_m": -0.001746252179145813
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_074_077_076_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7912539839744568,
+          "reference_xy_displacement_m": 1.9171900749206543,
+          "reference_final_height_change_m": -0.0007991939783096313
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_092_082_087_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7936339378356934,
+          "reference_xy_displacement_m": 2.229212760925293,
+          "reference_final_height_change_m": -0.000798344612121582
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_010_078_075_076_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 242,
+          "reference_lift_m": 0.4281470775604248,
+          "reference_xy_displacement_m": 1.3369667530059814,
+          "reference_final_height_change_m": -0.06678730249404907
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_028_081_082_080_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 260,
+          "reference_lift_m": 0.5642982125282288,
+          "reference_xy_displacement_m": 0.6628620028495789,
+          "reference_final_height_change_m": -0.08921286463737488
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_010_093_091_075_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 378,
+          "reference_lift_m": 0.7024754285812378,
+          "reference_xy_displacement_m": 2.239978790283203,
+          "reference_final_height_change_m": -0.03607013821601868
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_072_082_091_077_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 408,
+          "reference_lift_m": 0.6967885494232178,
+          "reference_xy_displacement_m": 1.9562854766845703,
+          "reference_final_height_change_m": -0.030400574207305908
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_076_083_074_085_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 448,
+          "reference_lift_m": 0.9665960669517517,
+          "reference_xy_displacement_m": 1.7204573154449463,
+          "reference_final_height_change_m": -0.024922668933868408
+        }
+      ],
+      "carry_and_place_success": "strict placement success plus observed lift >=.2 m above reference start and >=10 hand-contact controls; derived separately from the preregistered terminal task-success metric",
+      "point_fixed_grid_sampling": true,
+      "epoch": 6500,
+      "evaluation_revision": "training4096_reference_pca_v1",
+      "cohort_source": "output/reproduction/student_10000_benchmark/manifest.json",
+      "policy_architecture": "v3_rl",
+      "policy_training_config": "ultra/data/cfg/train/rlg/g1_student_finetune.yaml",
+      "initial_student_epoch": 6000,
+      "rl_finetune_epochs": 500,
+      "training_log": "output/reproduction/finetune_fixed_6000_20261022/training.log"
+    }
+  },
+  "RL2000": {
+    "summary": {
+      "gym": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 11,
+          "task_success_rate": 0.55,
+          "strict_placement_successes": 8,
+          "carry_and_place_successes": 8,
+          "falls": 4,
+          "mean_final_box_error_m": 0.7003272625617682,
+          "median_final_box_error_m": 0.21555807441473007,
+          "mean_box_trajectory_rmse_m": 0.51220443546772,
+          "mean_joint_trajectory_rmse_rad": 0.11626600921154022
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 3,
+          "task_success_rate": 0.15,
+          "strict_placement_successes": 1,
+          "carry_and_place_successes": 1,
+          "falls": 12,
+          "mean_final_box_error_m": 1.365564827574417,
+          "median_final_box_error_m": 1.3842381834983826,
+          "mean_box_trajectory_rmse_m": 1.0273164838552475,
+          "mean_joint_trajectory_rmse_rad": 0.3528872951865196
+        }
+      },
+      "mujoco": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 12,
+          "task_success_rate": 0.6,
+          "strict_placement_successes": 5,
+          "carry_and_place_successes": 5,
+          "falls": 5,
+          "mean_final_box_error_m": 0.8141129633426505,
+          "median_final_box_error_m": 0.12873820008134373,
+          "mean_box_trajectory_rmse_m": 0.6121939106954734,
+          "mean_joint_trajectory_rmse_rad": 0.16264883728525642
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 3,
+          "task_success_rate": 0.15,
+          "strict_placement_successes": 1,
+          "carry_and_place_successes": 1,
+          "falls": 13,
+          "mean_final_box_error_m": 1.441108637431205,
+          "median_final_box_error_m": 1.6177177612269364,
+          "mean_box_trajectory_rmse_m": 1.0853633534615472,
+          "mean_joint_trajectory_rmse_rad": 0.4041582184555548
+        }
+      }
+    },
+    "checkpoint_sha256": "b775d69127bc3dff29faad7e2afb4abe4a40b6edd5de6258561ecfe72281f6d3",
+    "manifest": {
+      "selection_seed": 20261019,
+      "rollout_seed": 42,
+      "checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00008000.pth",
+      "modes": [
+        "full_track",
+        "object_obs"
+      ],
+      "object_input": "points",
+      "latent_noise": "zero",
+      "selection": "Five motions per object, unscaled 100 assets, 120..900 frames, reference lift >=.2 m, terminal XY travel >=.5 m, absolute terminal height change <=.12 m. Chosen before observing policy outcomes.",
+      "task_success": "finite complete rollout, pelvis never below .25 m, terminal object position 3D distance <.3 m",
+      "strict_placement": "task success plus final 15 controls all within .3 m and vertical error <.1 m, object speed <.2 m/s, hand contact force absent and object-ground support present throughout final 15 controls",
+      "limitations": "Small in-distribution augmented training-dataset sample, one seed per motion. Other known sim differences retained. Not a held-out paper benchmark or an estimate for 080-size objects.",
+      "motions": [
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_026_097_090_075_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 388,
+          "reference_lift_m": 1.036850094795227,
+          "reference_xy_displacement_m": 1.2859209775924683,
+          "reference_final_height_change_m": -6.780028343200684e-06
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_078_075_085_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7370514273643494,
+          "reference_xy_displacement_m": 1.9299590587615967,
+          "reference_final_height_change_m": -2.5331974029541016e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_080_087_087_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7322031259536743,
+          "reference_xy_displacement_m": 1.963868260383606,
+          "reference_final_height_change_m": 0.008605808019638062
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_043_075_091_073_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 320,
+          "reference_lift_m": 0.5762747526168823,
+          "reference_xy_displacement_m": 1.883394718170166,
+          "reference_final_height_change_m": -0.0038102418184280396
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_046_123_127_077_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 338,
+          "reference_lift_m": 0.656574547290802,
+          "reference_xy_displacement_m": 2.8649139404296875,
+          "reference_final_height_change_m": -1.3127923011779785e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub12_plasticbox_052_073_103_080_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 398,
+          "reference_lift_m": 0.5847580432891846,
+          "reference_xy_displacement_m": 1.406278371810913,
+          "reference_final_height_change_m": 0.0034891515970230103
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_027_088_100_074_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 330,
+          "reference_lift_m": 0.7404152154922485,
+          "reference_xy_displacement_m": 0.8913178443908691,
+          "reference_final_height_change_m": -0.006589919328689575
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_043_095_101_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 274,
+          "reference_lift_m": 0.5521659255027771,
+          "reference_xy_displacement_m": 1.9125338792800903,
+          "reference_final_height_change_m": -0.008755415678024292
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_047_081_081_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 366,
+          "reference_lift_m": 0.6202865839004517,
+          "reference_xy_displacement_m": 1.0207353830337524,
+          "reference_final_height_change_m": -0.008965998888015747
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_073_094_103_077_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 376,
+          "reference_lift_m": 0.6502244472503662,
+          "reference_xy_displacement_m": 2.5813841819763184,
+          "reference_final_height_change_m": -0.005838453769683838
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_085_084_096_082_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 326,
+          "reference_lift_m": 0.702711284160614,
+          "reference_xy_displacement_m": 0.5728777647018433,
+          "reference_final_height_change_m": -0.0023455098271369934
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_086_121_086_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6758157014846802,
+          "reference_xy_displacement_m": 1.120110273361206,
+          "reference_final_height_change_m": -0.0017501041293144226
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_098_079_073_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6319456696510315,
+          "reference_xy_displacement_m": 1.0050361156463623,
+          "reference_final_height_change_m": -0.001746252179145813
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_074_077_076_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7912539839744568,
+          "reference_xy_displacement_m": 1.9171900749206543,
+          "reference_final_height_change_m": -0.0007991939783096313
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_092_082_087_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7936339378356934,
+          "reference_xy_displacement_m": 2.229212760925293,
+          "reference_final_height_change_m": -0.000798344612121582
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_010_078_075_076_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 242,
+          "reference_lift_m": 0.4281470775604248,
+          "reference_xy_displacement_m": 1.3369667530059814,
+          "reference_final_height_change_m": -0.06678730249404907
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_028_081_082_080_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 260,
+          "reference_lift_m": 0.5642982125282288,
+          "reference_xy_displacement_m": 0.6628620028495789,
+          "reference_final_height_change_m": -0.08921286463737488
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_010_093_091_075_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 378,
+          "reference_lift_m": 0.7024754285812378,
+          "reference_xy_displacement_m": 2.239978790283203,
+          "reference_final_height_change_m": -0.03607013821601868
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_072_082_091_077_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 408,
+          "reference_lift_m": 0.6967885494232178,
+          "reference_xy_displacement_m": 1.9562854766845703,
+          "reference_final_height_change_m": -0.030400574207305908
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_076_083_074_085_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 448,
+          "reference_lift_m": 0.9665960669517517,
+          "reference_xy_displacement_m": 1.7204573154449463,
+          "reference_final_height_change_m": -0.024922668933868408
+        }
+      ],
+      "carry_and_place_success": "strict placement success plus observed lift >=.2 m above reference start and >=10 hand-contact controls; derived separately from the preregistered terminal task-success metric",
+      "point_fixed_grid_sampling": true,
+      "epoch": 8000,
+      "evaluation_revision": "training4096_reference_pca_v1",
+      "cohort_source": "output/reproduction/student_10000_benchmark/manifest.json",
+      "policy_architecture": "v3_rl",
+      "policy_training_config": "ultra/data/cfg/train/rlg/g1_student_finetune.yaml",
+      "initial_student_epoch": 6000,
+      "rl_finetune_epochs": 2000,
+      "training_log": "output/reproduction/finetune_fixed_6000_20261022/training.log"
+    }
+  },
+  "RL2500": {
+    "summary": {
+      "gym": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 10,
+          "task_success_rate": 0.5,
+          "strict_placement_successes": 6,
+          "carry_and_place_successes": 6,
+          "falls": 3,
+          "mean_final_box_error_m": 0.7988824065774679,
+          "median_final_box_error_m": 0.333694189786911,
+          "mean_box_trajectory_rmse_m": 0.5741687625646591,
+          "mean_joint_trajectory_rmse_rad": 0.1284675668925047
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 0,
+          "task_success_rate": 0.0,
+          "strict_placement_successes": 0,
+          "carry_and_place_successes": 0,
+          "falls": 8,
+          "mean_final_box_error_m": 1.5684291794896126,
+          "median_final_box_error_m": 1.6469975113868713,
+          "mean_box_trajectory_rmse_m": 1.1431080669164657,
+          "mean_joint_trajectory_rmse_rad": 0.4240464478731155
+        }
+      },
+      "mujoco": {
+        "full_track": {
+          "episodes": 20,
+          "task_successes": 11,
+          "task_success_rate": 0.55,
+          "strict_placement_successes": 8,
+          "carry_and_place_successes": 8,
+          "falls": 6,
+          "mean_final_box_error_m": 0.8479692926120894,
+          "median_final_box_error_m": 0.24626315992843148,
+          "mean_box_trajectory_rmse_m": 0.6135586145297782,
+          "mean_joint_trajectory_rmse_rad": 0.18414645446338557
+        },
+        "object_obs": {
+          "episodes": 20,
+          "task_successes": 0,
+          "task_success_rate": 0.0,
+          "strict_placement_successes": 0,
+          "carry_and_place_successes": 0,
+          "falls": 8,
+          "mean_final_box_error_m": 1.6189845434817518,
+          "median_final_box_error_m": 1.8800092483703175,
+          "mean_box_trajectory_rmse_m": 1.1866951277000202,
+          "mean_joint_trajectory_rmse_rad": 0.43541538243501676
+        }
+      }
+    },
+    "checkpoint_sha256": "2ca822d03059f8432105494fb37c718cdb4cc68981fefd326116f464dfd4024d",
+    "manifest": {
+      "selection_seed": 20261019,
+      "rollout_seed": 42,
+      "checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00008500.pth",
+      "modes": [
+        "full_track",
+        "object_obs"
+      ],
+      "object_input": "points",
+      "latent_noise": "zero",
+      "selection": "Five motions per object, unscaled 100 assets, 120..900 frames, reference lift >=.2 m, terminal XY travel >=.5 m, absolute terminal height change <=.12 m. Chosen before observing policy outcomes.",
+      "task_success": "finite complete rollout, pelvis never below .25 m, terminal object position 3D distance <.3 m",
+      "strict_placement": "task success plus final 15 controls all within .3 m and vertical error <.1 m, object speed <.2 m/s, hand contact force absent and object-ground support present throughout final 15 controls",
+      "limitations": "Small in-distribution augmented training-dataset sample, one seed per motion. Other known sim differences retained. Not a held-out paper benchmark or an estimate for 080-size objects.",
+      "motions": [
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_026_097_090_075_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 388,
+          "reference_lift_m": 1.036850094795227,
+          "reference_xy_displacement_m": 1.2859209775924683,
+          "reference_final_height_change_m": -6.780028343200684e-06
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_078_075_085_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7370514273643494,
+          "reference_xy_displacement_m": 1.9299590587615967,
+          "reference_final_height_change_m": -2.5331974029541016e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_042_080_087_087_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 364,
+          "reference_lift_m": 0.7322031259536743,
+          "reference_xy_displacement_m": 1.963868260383606,
+          "reference_final_height_change_m": 0.008605808019638062
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_043_075_091_073_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 320,
+          "reference_lift_m": 0.5762747526168823,
+          "reference_xy_displacement_m": 1.883394718170166,
+          "reference_final_height_change_m": -0.0038102418184280396
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_046_123_127_077_100_100_100.pt",
+          "object": "largebox",
+          "asset_key": "largebox_100_100_100",
+          "raw_frames": 338,
+          "reference_lift_m": 0.656574547290802,
+          "reference_xy_displacement_m": 2.8649139404296875,
+          "reference_final_height_change_m": -1.3127923011779785e-05
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub12_plasticbox_052_073_103_080_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 398,
+          "reference_lift_m": 0.5847580432891846,
+          "reference_xy_displacement_m": 1.406278371810913,
+          "reference_final_height_change_m": 0.0034891515970230103
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_027_088_100_074_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 330,
+          "reference_lift_m": 0.7404152154922485,
+          "reference_xy_displacement_m": 0.8913178443908691,
+          "reference_final_height_change_m": -0.006589919328689575
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_043_095_101_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 274,
+          "reference_lift_m": 0.5521659255027771,
+          "reference_xy_displacement_m": 1.9125338792800903,
+          "reference_final_height_change_m": -0.008755415678024292
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_047_081_081_078_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 366,
+          "reference_lift_m": 0.6202865839004517,
+          "reference_xy_displacement_m": 1.0207353830337524,
+          "reference_final_height_change_m": -0.008965998888015747
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_073_094_103_077_100_100_100.pt",
+          "object": "plasticbox",
+          "asset_key": "plasticbox_100_100_100",
+          "raw_frames": 376,
+          "reference_lift_m": 0.6502244472503662,
+          "reference_xy_displacement_m": 2.5813841819763184,
+          "reference_final_height_change_m": -0.005838453769683838
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_085_084_096_082_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 326,
+          "reference_lift_m": 0.702711284160614,
+          "reference_xy_displacement_m": 0.5728777647018433,
+          "reference_final_height_change_m": -0.0023455098271369934
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_086_121_086_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6758157014846802,
+          "reference_xy_displacement_m": 1.120110273361206,
+          "reference_final_height_change_m": -0.0017501041293144226
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_086_098_079_073_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 290,
+          "reference_lift_m": 0.6319456696510315,
+          "reference_xy_displacement_m": 1.0050361156463623,
+          "reference_final_height_change_m": -0.001746252179145813
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_074_077_076_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7912539839744568,
+          "reference_xy_displacement_m": 1.9171900749206543,
+          "reference_final_height_change_m": -0.0007991939783096313
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_048_092_082_087_100_100_100.pt",
+          "object": "smallbox",
+          "asset_key": "smallbox_100_100_100",
+          "raw_frames": 462,
+          "reference_lift_m": 0.7936339378356934,
+          "reference_xy_displacement_m": 2.229212760925293,
+          "reference_final_height_change_m": -0.000798344612121582
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_010_078_075_076_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 242,
+          "reference_lift_m": 0.4281470775604248,
+          "reference_xy_displacement_m": 1.3369667530059814,
+          "reference_final_height_change_m": -0.06678730249404907
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_028_081_082_080_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 260,
+          "reference_lift_m": 0.5642982125282288,
+          "reference_xy_displacement_m": 0.6628620028495789,
+          "reference_final_height_change_m": -0.08921286463737488
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_010_093_091_075_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 378,
+          "reference_lift_m": 0.7024754285812378,
+          "reference_xy_displacement_m": 2.239978790283203,
+          "reference_final_height_change_m": -0.03607013821601868
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_072_082_091_077_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 408,
+          "reference_lift_m": 0.6967885494232178,
+          "reference_xy_displacement_m": 1.9562854766845703,
+          "reference_final_height_change_m": -0.030400574207305908
+        },
+        {
+          "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_076_083_074_085_100_100_100.pt",
+          "object": "suitcase",
+          "asset_key": "suitcase_100_100_100",
+          "raw_frames": 448,
+          "reference_lift_m": 0.9665960669517517,
+          "reference_xy_displacement_m": 1.7204573154449463,
+          "reference_final_height_change_m": -0.024922668933868408
+        }
+      ],
+      "carry_and_place_success": "strict placement success plus observed lift >=.2 m above reference start and >=10 hand-contact controls; derived separately from the preregistered terminal task-success metric",
+      "point_fixed_grid_sampling": true,
+      "epoch": 8500,
+      "evaluation_revision": "training4096_reference_pca_v1",
+      "cohort_source": "output/reproduction/student_10000_benchmark/manifest.json",
+      "policy_architecture": "v3_rl",
+      "policy_training_config": "ultra/data/cfg/train/rlg/g1_student_finetune.yaml",
+      "initial_student_epoch": 6000,
+      "rl_finetune_epochs": 2500,
+      "training_log": "output/reproduction/finetune_fixed_6000_20261022/training.log"
+    }
+  }
+}

@@ -41,6 +41,13 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
     def __init__(self, base_name, config):
         super().__init__(base_name, config)
         self.two_stage_gradients = config.get('two_stage_gradients', False)
+        self.prior_action_loss_coef = float(config.get('prior_action_loss_coef', 0.0))
+        self.ppo_target_kl = float(config.get('ppo_target_kl', 0.0))
+        self.actor_warmup_epochs = int(config.get('actor_warmup_epochs', 100))
+        self.actor_ramp_epochs = max(1, int(config.get('actor_ramp_epochs', 100)))
+        if self.is_adaptive_lr:
+            self.scheduler.max_lr = float(config.get('lr_max', self.scheduler.max_lr))
+            self.scheduler.min_lr = float(config.get('lr_min', self.scheduler.min_lr))
         self.epoch_num_start = 0
         self.expert_loss_coef = config['expert_loss_coef']
         self.entropy_coef = config['entropy_coef']
@@ -609,6 +616,16 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
             mu_prior = res_dict_prior['mus']
             sigma_prior = res_dict_prior['sigmas']
 
+            # The rollout distribution in PPO environments is prior-only.
+            # Comparing privileged posterior means to it measures another policy.
+            with torch.no_grad():
+                prior_kl_raw = torch.distributions.kl_divergence(
+                    torch.distributions.Normal(mu_prior.detach(), sigma_prior.detach(), validate_args=False),
+                    torch.distributions.Normal(old_mu_batch, old_sigma_batch, validate_args=False),
+                ).sum(dim=-1).clamp_min(0.0)
+                prior_kl = self._loss_mean_masked(prior_kl_raw, prior_mask.squeeze(-1))
+                kl_gate = (prior_kl <= self.ppo_target_kl).float() if self.ppo_target_kl > 0 else prior_kl.new_ones(())
+
             prior_outs, encoder_outs = state['prior_out'], state['encoder_out']
 
             # === DISTILLATION LOSSES (only for distill_mask envs) ===
@@ -651,7 +668,7 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
             c_loss = self._loss_mean_masked(c_loss_raw, prior_mask.squeeze(-1))
             b_loss = self._loss_mean_masked(b_loss_raw, prior_mask.squeeze(-1))
             a_clip_frac = self._loss_mean_masked(a_clipped, prior_mask.squeeze(-1))
-            entropy_val = self._loss_mean(entropy)
+            entropy_val = self._loss_mean_masked(entropy_prior, prior_mask.squeeze(-1))
 
             # === LOSS SCHEDULES ===
             # Smooth cosine schedule for KLD coefficient: 0.001 -> 0.1 over epochs 500-3500
@@ -660,7 +677,7 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
 
             # Smooth cosine schedule for prior action loss coefficient: 0 -> 0.6 over epochs 500-3500
             progress_prior = min(max(0, self.epoch_num - 500) / 3000, 1)
-            prior_action_coeff = 0.0 * (1 - torch.cos(torch.tensor(progress_prior * 3.14159265))) / 2
+            prior_action_coeff = self.prior_action_loss_coef * (1 - torch.cos(torch.tensor(progress_prior * 3.14159265))) / 2
 
             # Smooth cosine schedule for smooth coefficient: 0.0001 -> 0.001 over epochs 500-3500
             progress_smooth = min(max(0, self.epoch_num - 500) / 3000, 1)
@@ -671,8 +688,9 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
             epochs_since_start = self.epoch_num - self.epoch_num_start
 
             # Actor loss: disabled initially, ramp up from 0 to 1 over epochs 100-200 since start
-            actor_coeff = min(max(0, epochs_since_start - 100) / 100, 1)
-            actor_coeff_tensor = a_loss.new_tensor(actor_coeff)
+            actor_coeff = min(max(0, epochs_since_start - self.actor_warmup_epochs) / self.actor_ramp_epochs, 1)
+            actor_coeff_tensor = a_loss.new_tensor(actor_coeff) * kl_gate
+            actor_coeff = actor_coeff_tensor
 
             # Critic loss: always active for RL envs
             critic_coeff = 1.0
@@ -751,10 +769,7 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
         self.scaler.step(self.optimizer)
         self.scaler.update()
         with torch.no_grad():
-            reduce_kl = not self.is_rnn
-            kl_dist = torch_ext.policy_kl(mu.detach(), sigma.detach(), old_mu_batch, old_sigma_batch, reduce_kl)
-            if self.is_rnn:
-                kl_dist = (kl_dist * rnn_masks).sum() / rnn_masks.numel()  #/ sum_mask
+            kl_dist = prior_kl
 
             self.train_result = {
                 'entropy': entropy_val,
@@ -774,6 +789,8 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
                 'bounds_loss': b_loss,
                 'actor_clip_frac': a_clip_frac,
                 'actor_coeff': actor_coeff_tensor,
+                'actor_kl_gate': kl_gate,
+                'prior_action_coeff': prior_action_coeff.detach().to(a_loss),
                 'distill_mask_fraction': distill_mask.mean(),
             }
         return
@@ -814,6 +831,8 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
         self.writer.add_scalar('losses/c_loss', torch_ext.mean_list(train_info['critic_loss']).item(), frame)
         self.writer.add_scalar('losses/bounds_loss', torch_ext.mean_list(train_info['bounds_loss']).item(), frame)
         self.writer.add_scalar('info/actor_coeff', torch_ext.mean_list(train_info['actor_coeff']).item(), frame)
+        self.writer.add_scalar('info/actor_kl_gate', torch_ext.mean_list(train_info['actor_kl_gate']).item(), frame)
+        self.writer.add_scalar('info/prior_action_coeff', torch_ext.mean_list(train_info['prior_action_coeff']).item(), frame)
         self.writer.add_scalar('info/distill_mask_fraction', torch_ext.mean_list(train_info['distill_mask_fraction']).item(), frame)
 
         self.writer.add_scalar('losses/entropy', torch_ext.mean_list(train_info['entropy']).item(), frame)

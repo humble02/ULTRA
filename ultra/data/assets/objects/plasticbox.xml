@@ -20,6 +20,8 @@
 
   <worldbody>
     <body name="plasticbox" pos="0 0 0.9" quat="1 0 0 0">
+      <!-- Nominal Gym 100% asset: exported actor mass, COM and full inertia. -->
+      <inertial pos="0.00065012526465579867 -0.0095292311161756516 -0.0041671763174235821" mass="0.27213042974472046" fullinertia="0.0061006601899862289 0.015095110051333904 0.013243230059742928 0 0 0"/>
       <freejoint name="plasticbox_free"/>
 
       <geom class="plasticbox_phys"

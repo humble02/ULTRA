@@ -107,7 +107,7 @@ def xyzw_to_wxyz(q):
 
 def _body_world_velocities(model, data, body_ids):
     """
-    Compute world-frame linear and angular velocities for each body COM
+    Compute world-frame linear and angular velocities for each body origin
     using Jacobians:  v = J * qvel
     Returns:
         lin (B, Nb, 3), ang (B, Nb, 3) as torch tensors with B=1
@@ -120,7 +120,7 @@ def _body_world_velocities(model, data, body_ids):
     ang = []
     for bid in body_ids:
         jacp.fill(0.0); jacr.fill(0.0)
-        # Jacobian at body center of mass (world frame)
+        # Jacobian at the body origin (not mj_jacBodyCom).
         mj.mj_jacBody(model, data, jacp, jacr, bid)
         v_lin = jacp @ data.qvel
         v_ang = jacr @ data.qvel
@@ -133,7 +133,7 @@ def _body_world_velocities(model, data, body_ids):
 
 
 def _single_body_world_velocities(model, data, body_id):
-    """World-frame linear & angular COM velocities via Jacobians."""
+    """World-frame linear & angular body-origin velocities via Jacobians."""
     nv = model.nv
     jacp = np.zeros((3, nv), dtype=np.float64)
     jacr = np.zeros((3, nv), dtype=np.float64)
@@ -146,11 +146,11 @@ def _single_body_world_velocities(model, data, body_id):
 
 def _gather_contact_forces(model, data, body_ids):
     """
-    MuJoCo external wrenches per body in world frame: data.cfrc_ext[body, 0:3] are forces.
+    World-frame external forces; MuJoCo spatial wrenches use [torque, force].
     Returns (1, Nb, 3) torch tensor.
     """
-    # cfrc_ext is (nb, 6): [fx, fy, fz, tx, ty, tz]
-    f_world = data.cfrc_ext[body_ids, :3].copy()
+    mj.mj_rnePostConstraint(model, data)
+    f_world = data.cfrc_ext[body_ids, 3:6].copy()
     return torch.from_numpy(f_world).unsqueeze(0).to(torch.float32)
 
 
@@ -225,8 +225,11 @@ def contact_indicator_for_bodies(model, data, body_ids, device=None):
 
 class MujocoObs:
     def __init__(self, model, object_body_name, max_episode_length, hoi_data, object_points, actuator_ids=None,
-                 local_root_obs=False, root_height_obs=True, history_step=0, device="cpu"):
+                 local_root_obs=False, root_height_obs=True, history_step=0, device="cpu",
+                 keep_task_obs=True, keep_ig_obs=True):
         self.model = model
+        self.keep_task_obs = keep_task_obs
+        self.keep_ig_obs = keep_ig_obs
         
         # Build human-only mappings (pass your known training order if you have it)
         human_body_names_39 = None  # or a concrete list to lock training order
@@ -281,10 +284,9 @@ class MujocoObs:
         ref_obs = self.hoi_data[None, next_ts].clone()
         obs, key_body_pose, key_body_rot, obs_dict = self._compute_humanoid_obs(data, ref_obs, actions, torques, episode_length,  student_obs=student_obs)
         task_obs, obj_points, obj_obs_dict = self._compute_task_obs(data, ref_obs)
-        # The teacher is trained with the object task observation kept in only obs_task_keep_prob (0.3) of the
-        # environments and the interaction-graph (IG) features in obs_ig_keep_prob (0.1) of them, so the
-        # fully-masked variant used here for sim2sim is inside the training distribution.
-        task_obs*=0
+        # Match unmasked Gym inference by default. Explicit masks remain
+        # available for ablations of the teacher's privileged inputs.
+        task_obs *= float(self.keep_task_obs)
         obs = torch.cat([obs, task_obs], dim=-1)
         obs_dict.update(obj_obs_dict)
         ig = compute_sdf(key_body_pose, obj_points).view(-1, 3)
@@ -299,16 +301,20 @@ class MujocoObs:
         ref_ig_norm = ref_ig.norm(dim=-1, keepdim=True)
         ref_ig = ref_ig / (ref_ig_norm + 1e-6) * (-5 * ref_ig_norm).exp()  
         ref_ig = ref_ig.view(1, -1)
-        ref_ig *= 0  # IG features masked, see comment above
-        ig_all *= 0
-        ig *= 0
+        ref_ig *= float(self.keep_ig_obs)
+        ig_all *= float(self.keep_ig_obs)
+        ig *= float(self.keep_ig_obs)
         obs_dict.update(OrderedDict([('ig', ig_all), ('diff_ig', ref_ig-ig)]))          
         return torch.cat((obs,ig_all,ref_ig-ig),dim=-1), obs_dict
 
     def _compute_observations(self, data, curr_t, actions, torques, student_obs=False, episode_length=0):
+        previous_pos, previous_vel = self.last_dof_pos, self.last_dof_vel
         obs_1, obs_dict_1 = self._compute_observations_iter(data, curr_t, 1, actions, torques, student_obs=student_obs, episode_length=episode_length)
         if student_obs:
             return obs_1
+        # Both reference horizons describe the same physical control step.
+        # Keep the previous-step DOF values identical in both halves.
+        self.last_dof_pos, self.last_dof_vel = previous_pos, previous_vel
         obs_2, obs_dict_2 = self._compute_observations_iter(data, curr_t, 16, actions, torques, student_obs=student_obs, episode_length=episode_length)
         # save_json_ordered(obs_dict_1, output_file)
         # return obs_1

@@ -20,6 +20,8 @@
 
   <worldbody>
     <body name="suitcase" pos="0 0 0.9" quat="1 0 0 0">
+      <!-- Nominal Gym 100% asset: exported actor mass, COM and full inertia. -->
+      <inertial pos="0.00053785881027579308 -0.02309369295835495 -0.0031591099686920643" mass="1.2275009155273438" fullinertia="0.035930514335632324 0.020565012469887733 0.035563204437494278 0 0 0"/>
       <freejoint name="suitcase_free"/>
 
       <geom class="suitcase_phys"

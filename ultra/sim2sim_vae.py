@@ -90,16 +90,17 @@ _TRAIN_CONFIG_PATH = (
 )
 
 
-def _load_network_config_from_yaml():
+def _load_network_config_from_yaml(config_path=None):
     """Load the training-time network config so sim2sim matches the deployed policy."""
-    if not _TRAIN_CONFIG_PATH.is_file():
-        raise FileNotFoundError(f"Config not found: {_TRAIN_CONFIG_PATH}")
-    with _TRAIN_CONFIG_PATH.open("r") as f:
+    path = Path(config_path) if config_path is not None else _TRAIN_CONFIG_PATH
+    if not path.is_file():
+        raise FileNotFoundError(f"Config not found: {path}")
+    with path.open("r") as f:
         raw_cfg = yaml.safe_load(f) or {}
     params = raw_cfg.get("params", {})
     network_cfg = copy.deepcopy(params.get("network"))
     if not network_cfg:
-        raise ValueError(f"'network' section missing from {_TRAIN_CONFIG_PATH}")
+        raise ValueError(f"'network' section missing from {path}")
     if "vae_dim" not in network_cfg:
         vae_dim = params.get("config", {}).get("vae_dim")
         if vae_dim is not None:
@@ -442,9 +443,11 @@ class HumanoidEnv:
         point_viz_site_size=0.02,
         goal_achievement_enabled=False,
         goal_pos_threshold=0.3,
-        obj_goal_decouple="hard",
+        obj_goal_decouple="off",
         obj_goal_z_threshold=0.15,
         goal_phase_dim=4,
+        align_training_dynamics=True,
+        match_training_reset=True,
     ):
         self.robot_type = robot_type
         self.device = device
@@ -459,6 +462,7 @@ class HumanoidEnv:
         self.point_viz_site_size = float(point_viz_site_size)
         self._use_mjcf_markers = self.point_viz_sites > 0
         self.goal_phase_dim = int(goal_phase_dim)
+        self.match_training_reset = match_training_reset
         if self.goal_phase_dim not in (3, 4):
             raise ValueError(f"goal_phase_dim must be 3 or 4, got {self.goal_phase_dim}")
         human_path = f"ultra/data/assets/g1/g1_29dof.xml"
@@ -535,7 +539,7 @@ class HumanoidEnv:
                 25.0, 25.0, 25.0, 25.0, 25.0, 5.0, 5.0])
         self.cycle_time = 0.64
 
-        self.torque_limits = self.torque_limits.astype(np.float32) * 1.0
+        self.torque_limits = self.torque_limits.astype(np.float32) * (0.8 if align_training_dynamics else 1.0)
         
         self.obs_indices = np.arange(self.num_dofs)
         
@@ -550,8 +554,15 @@ class HumanoidEnv:
         self.control_dt = self.sim_dt * self.sim_decimation
         
         self.model = mujoco.MjModel.from_xml_path(model_path)
+        if align_training_dynamics:
+            joint_dofs = np.array([int(self.model.joint(name).dofadr[0]) for name in JOINT_NAMES_29])
+            self.model.dof_armature[joint_dofs] = armature
+            self.model.dof_damping[joint_dofs] = 0.0
+            self.model.dof_frictionloss[joint_dofs] = 0.0
         self.model.opt.timestep = self.sim_dt
         self.data = mujoco.MjData(self.model)
+        if align_training_dynamics:
+            mujoco.mj_setConst(self.model, self.data)
         self._set_object_transparency(self.object_alpha)
         self._init_viz_sites()
         mujoco.mj_resetDataKeyframe(self.model, self.data, 0)
@@ -704,11 +715,18 @@ class HumanoidEnv:
                 'num_seqs' : num_envs,
                 'value_size': 1,
             }
-            network = ultra_network_builder_obj_v2.UltraBuilder()
-            network_params = _load_network_config_from_yaml()
+            ck = torch.load(self.policy_path, map_location="cpu")
+            is_rl = any(".rl_finetune_film." in key for key in ck["model"])
+            if is_rl:
+                from learning import ultra_network_builder_obj_v3
+                network = ultra_network_builder_obj_v3.UltraBuilder()
+                network_params = _load_network_config_from_yaml(
+                    Path(__file__).resolve().parent / "data/cfg/train/rlg/g1_student_finetune.yaml")
+            else:
+                network = ultra_network_builder_obj_v2.UltraBuilder()
+                network_params = _load_network_config_from_yaml()
             network.load(network_params)
             network = ultra_models.ModelUltraContinuous(network)
-            ck = torch_ext.load_checkpoint(self.policy_path)
             policy = network.build(config)
             policy.to(self.device)
             policy.load_state_dict(ck['model'])
@@ -717,15 +735,14 @@ class HumanoidEnv:
             self.running_var = None
             self.policy_jit = None
             self.vae_dim = self.policy.a2c_network.vae_dim
+            self.policy_architecture = "v3_rl" if is_rl else "v2_distill"
             print("✓ Checkpoint loaded successfully")
 
     def _load_motion(self, data_path):
         loaded_dict = {}
-        hoi_data = torch.load(data_path)
-        hoi_data_expand = torch.zeros((hoi_data.shape[0]*2, hoi_data.shape[1]), device=hoi_data.device)
-        hoi_data_expand[0:hoi_data.shape[0]] = hoi_data
-        hoi_data_expand[hoi_data.shape[0]:] = hoi_data[-1]
-        hoi_data = hoi_data_expand
+        hoi_data = torch.load(data_path, map_location="cpu")
+        # Match training padding; sequence length also controls phase inputs.
+        hoi_data = torch.cat([hoi_data, hoi_data[-1:].repeat(20, 1)], dim=0)
         # hoi_data[5:] = hoi_data[4:5]
         loaded_dict['hoi_data'] = hoi_data.detach().to('cpu')
 
@@ -1109,19 +1126,20 @@ class HumanoidEnv:
             if key_id >= 0: mujoco.mj_resetDataKeyframe(self.model, self.data, key_id)
             else:           mujoco.mj_resetData(self.model, self.data)
             # 2) Slice references (torch on the right device)
-            ref = self.hoi_ref[motion_t]
+            ref = self.hoi_ref[motion_t].clone()
             if not isinstance(ref, torch.Tensor):
                 ref = torch.as_tensor(ref, dtype=torch.float32, device=self.device)
             else:
                 ref = ref.to(self.device, torch.float32)
             root_pos      = ref[0:3]
             root_rot_xyzw = ref[3:7]
-            root_vel      = torch.zeros_like(ref[7:10])
-            root_ang_vel  = torch.zeros_like(ref[10:13])
+            root_vel      = ref[7:10].clone() if self.match_training_reset else torch.zeros_like(ref[7:10])
+            root_ang_vel  = ref[10:13].clone() if self.match_training_reset else torch.zeros_like(ref[10:13])
             dof_pos       = ref[13:42]    # 29
-            dof_vel       = torch.zeros_like(ref[42:71])    # 29
+            dof_vel       = ref[42:71].clone() if self.match_training_reset else torch.zeros_like(ref[42:71])
             root_pos_new = _randn_like(root_pos, noise["root_pos"])
-            root_pos_new[..., 2:3] = (root_pos[..., 2:3] + 0.01)
+            if not self.match_training_reset:
+                root_pos_new[..., 2:3] = root_pos[..., 2:3] + 0.01
             root_pos = root_pos_new
             root_rot_xyzw = _perturb_quat(root_rot_xyzw, noise["root_rot"])
             root_vel = _randn_like(root_vel, noise["root_vel"])
@@ -1132,10 +1150,12 @@ class HumanoidEnv:
             obj_pos       = ref[71:74]
             obj_rot_xyzw  = ref[74:78]
             obj_pos_new  = _randn_like(obj_pos, noise["target_pos"])
+            if self.match_training_reset:
+                obj_pos_new[..., 2:3] = obj_pos[..., 2:3] + (0.1 if motion_t == 0 else 0.01)
             obj_rot_xyzw  = _perturb_quat(obj_rot_xyzw, noise["target_rot"])
-            obj_pos[..., :2] = obj_pos_new[..., :2]
-            obj_lin       = torch.zeros_like(ref[78:81])
-            obj_ang       = torch.zeros_like(ref[81:84])
+            obj_pos = obj_pos_new
+            obj_lin       = ref[78:81].clone() if self.match_training_reset else torch.zeros_like(ref[78:81])
+            obj_ang       = ref[81:84].clone() if self.match_training_reset else torch.zeros_like(ref[81:84])
             # 3) Human: set pelvis freejoint, then all hinge joints
             _set_freejoint_state(self.model, self.data, human_freejoint_name,
                                 root_pos, root_rot_xyzw, root_vel, root_ang_vel)
@@ -1520,7 +1540,7 @@ if __name__ == "__main__":
                         help="Position threshold (meters) for goal achievement")
     parser.add_argument('--goal_phase_dim', type=int, default=4, choices=[3, 4],
                         help="Command goal dimension: 4 (default, matches numObsStudent=1496 with time-to-go) or 3 (legacy 1494-d checkpoints)")
-    parser.add_argument('--obj_goal_decouple', type=str, default="hard",
+    parser.add_argument('--obj_goal_decouple', type=str, default="off",
                         choices=["off", "hard", "soft"],
                         help="Decouple object translation goal: vertical first then horizontal (sim2sim only)")
     parser.add_argument('--obj_goal_z_threshold', type=float, default=0.15,

@@ -236,10 +236,10 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
                     'prev_actions': None,
                     'obs': processed_obs,
                     'rnn_states': self.rnn_states,
-                    'teacher_obs': teacher_obs.clone(),
                     'vae_noise': self.vae_noise.clone(),
                     'with_encoder': False,  # Prior only
-                    'with_vae': True,
+                    # with_vae=True routes through the privileged posterior.
+                    'with_vae': False,
                     'skip_critic': True,
                 }
                 with torch.no_grad():
@@ -422,10 +422,9 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
                 'is_train': True,
                 'prev_actions': actions_batch,
                 'obs': obs_batch,
-                'teacher_obs': teacher_obs.clone(),
                 'vae_noise': vae_noise.clone(),
                 'with_encoder': False,  # Only use prior branch
-                'with_vae': True,
+                'with_vae': False,  # Same action path as deployment; latent VAE remains active.
                 'skip_critic': True,  # Don't need critic for this
             }
             res_dict_prior = self.model(batch_dict_prior)

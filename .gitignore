@@ -30,6 +30,8 @@ ultra/data/images/
 ultra/data/videos/
 
 # python / editors / OS
+.venv/
+.cache/
 **/__pycache__/
 *.pyc
 .vscode/

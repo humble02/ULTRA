@@ -9,6 +9,7 @@ from isaacgym import gymapi, gymutil, gymtorch
 from isaacgym.torch_utils import *
 
 from utils import torch_utils
+from utils.box_pca import box_pca_axes
 from rl_games.algos_torch import torch_ext
 import torch.nn as nn
 import torch.nn.functional as F
@@ -303,6 +304,9 @@ class UltraDistillObjV3RL(UltraG1Retarget):
         self.rl_prev_obj_goal_dist = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
         self.rl_prev_root_goal_dist = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
         self.rl_progress_reward_weight = rl_cfg.get("progress_reward_weight", 1.0)
+        self.rl_points_goal_fraction = float(rl_cfg.get("points_goal_fraction", 0.0))
+        self.rl_feasible_object_goals = bool(rl_cfg.get("feasible_object_goals", False))
+        self.rl_root_xy_reward = bool(rl_cfg.get("root_xy_reward", False))
         self.is_distill = True
 
         # Larger initialization noise for RL envs (humanoid root and object)
@@ -609,6 +613,14 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                 # Object goal position (with its own offset)
                 ref_obj_pos = self.hoi_refs[self.data_id[rl_new_ids], 0, goal_ts, 71:74]
                 self.rl_target_obj_pos[rl_new_ids] = ref_obj_pos + self.goal_offset_obj[rl_new_ids]
+                if self.rl_feasible_object_goals:
+                    ids = self.object_id[self.data_id[rl_new_ids]]
+                    corners = self.object_corners[ids]
+                    rotations = self.hoi_refs[self.data_id[rl_new_ids], 0, goal_ts, 74:78]
+                    rotations = rotations[:, None, :].expand(-1, corners.shape[1], -1)
+                    rotated = torch_utils.quat_rotate(rotations.reshape(-1, 4), corners.reshape(-1, 3)).reshape_as(corners)
+                    floor = -rotated[..., 2].amin(dim=1)
+                    self.rl_target_obj_pos[rl_new_ids, 2] = torch.maximum(self.rl_target_obj_pos[rl_new_ids, 2], floor)
                 # Human root goal position (with its own offset)
                 ref_root_pos = self.hoi_refs[self.data_id[rl_new_ids], 0, goal_ts, 0:3]
                 self.rl_target_root_pos[rl_new_ids] = ref_root_pos + self.goal_offset_root[rl_new_ids]
@@ -620,7 +632,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                     curr_obj_pos - self.rl_target_obj_pos[rl_new_ids], dim=-1
                 )
                 self.rl_prev_root_goal_dist[rl_new_ids] = torch.norm(
-                    curr_root_pos - self.rl_target_root_pos[rl_new_ids], dim=-1
+                    (curr_root_pos - self.rl_target_root_pos[rl_new_ids])[:, :2 if self.rl_root_xy_reward else 3], dim=-1
                 )
 
         if (env_ids is None):
@@ -938,6 +950,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             task_obs, obj_points = self._compute_task_obs(env_ids, ref_obs_task, student_obs)
             obs = torch.cat([obs, task_obs], dim=-1)
             ig_all, ig_norm = self._compute_ig_features(env_ids, obj_points, student_obs)
+            self._update_goal_phase(env_ids, ig_norm)
             if not student_obs:
                 self._update_object_deviation(env_ids, obj_points, ref_obs, ig_all)
                 ig_size = ig_all.view(env_ids.shape[0], -1).shape[-1]
@@ -954,7 +967,6 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             ig_features = ig_all.view(env_ids.shape[0], -1)
             ref_ig = ref_obs[:, 630:].view(env_ids.shape[0], 39, 3)
             ref_ig_norm = ref_ig.norm(dim=-1, keepdim=True)
-            self._update_goal_phase(env_ids, ref_ig_norm)
             ref_ig = ref_ig / (ref_ig_norm + 1e-6) * (-5 * ref_ig_norm).exp()
             ref_ig = ref_ig.view(env_ids.shape[0], -1)
             obs = torch.cat((obs, ig_features, ref_ig - ig_features), dim=-1)
@@ -984,6 +996,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             task_obs, obj_points = self._compute_task_obs(env_ids, ref_obs_task, student_obs)
             obs = torch.cat([obs, task_obs], dim=-1)
             ig_all, ig_norm = self._compute_ig_features(env_ids, obj_points, student_obs)
+            self._update_goal_phase(env_ids, ig_norm)
             if not student_obs:
                 self._update_object_deviation(env_ids, obj_points, ref_obs, ig_all)
                 ig_size = ig_all.view(env_ids.shape[0], -1).shape[-1]
@@ -998,7 +1011,6 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             ig_features = ig_all.view(env_ids.shape[0], -1)
             ref_ig = ref_obs[:, 630:].view(env_ids.shape[0], 39, 3)
             ref_ig_norm = ref_ig.norm(dim=-1, keepdim=True)
-            self._update_goal_phase(env_ids, ref_ig_norm)
             ref_ig = ref_ig / (ref_ig_norm + 1e-6) * (-5 * ref_ig_norm).exp()
             ref_ig = ref_ig.view(env_ids.shape[0], -1)
             obs = torch.cat((obs, ig_features, ref_ig - ig_features), dim=-1)
@@ -1138,13 +1150,6 @@ class UltraDistillObjV3RL(UltraG1Retarget):
         interacting = near_mask.float()
         goal_vec = torch.stack((approaching, leaving), dim=-1)
 
-        # For RL branch, randomize goal_vec
-        rl_mask = self.prior_mask[env_ids]
-        if rl_mask.any():
-            n_rl = rl_mask.sum()
-            random_goal_vec = torch.rand((n_rl, 2), device=self.device)
-            goal_vec[rl_mask] = random_goal_vec
-
         self.prev_hand_ig[env_ids] = current.detach()
         self.prev_hand_ig_valid[env_ids] = True
         remaining = (self.long_term_t[env_ids]).float()
@@ -1153,10 +1158,10 @@ class UltraDistillObjV3RL(UltraG1Retarget):
 
         # Near end of episode indicator
         # Distillation: near end of data
-        distill_near_end = self.progress_buf[env_ids] > (self.max_episode_length[self.data_id[env_ids]] - 20)
+        distill_near_end = self.progress_buf[env_ids] > (max_len - 20)
         # RL: near end of rollout
         rl_mask = self.prior_mask[env_ids]
-        rl_near_end = self.progress_buf[env_ids] > 1e5
+        rl_near_end = (self.progress_buf[env_ids] - self.start_times[env_ids]) > (self.rollout_length - 20)
         near_end = torch.where(rl_mask, rl_near_end, distill_near_end)
 
         self.goal_phase[env_ids] = torch.cat(
@@ -1273,6 +1278,15 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                         self.keep_obj_trans_mask[obj_fix_ids] = True
                         self.keep_obj_pos_mask[obj_fix_ids] = True
 
+                # Reserve a reproducible subset for the deployment mode that
+                # otherwise appears only rarely under independent random masks.
+                point_goal_ids = rl_ids[rl_ids - self.num_envs // 4 < int((self.num_envs - self.num_envs // 4) * self.rl_points_goal_fraction)]
+                for name, keep in (("keep_obj_point_mask", True), ("keep_obj_trans_mask", True),
+                                   ("keep_goal_mask", True), ("keep_human_move_mask", True),
+                                   ("keep_obj_pos_mask", False), ("keep_obj_rot_mask", False),
+                                   ("keep_global_goal_mask", False), ("keep_local_goal_mask", False)):
+                    getattr(self, name)[point_goal_ids] = keep
+
 
         # if self.object_history_buf is not None and env_ids.shape[0] > 0:
         #     self.object_history_buf[env_ids] = 0.0
@@ -1340,7 +1354,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             obj_goal_reward = torch.exp(-2.0 * obj_goal_dist)
 
             # Human root goal-following reward (exp of negative distance)
-            root_goal_dist = torch.norm(curr_root_pos - self.rl_target_root_pos, dim=-1)
+            root_goal_dist = torch.norm((curr_root_pos - self.rl_target_root_pos)[:, :2 if self.rl_root_xy_reward else 3], dim=-1)
             root_goal_reward = torch.exp(-2.0 * root_goal_dist)
 
             # Progress/velocity reward: reward for reducing distance to goal
@@ -1471,7 +1485,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                 # Humanoid root goal termination: only when root goal is visible
                 root_visible = self.keep_global_goal_mask
                 curr_root_pos = self._humanoid_root_states[:, :3]
-                root_goal_dist = torch.norm(curr_root_pos - self.rl_target_root_pos, dim=-1)
+                root_goal_dist = torch.norm((curr_root_pos - self.rl_target_root_pos)[:, :2 if self.rl_root_xy_reward else 3], dim=-1)
                 root_too_far = (root_goal_dist > self.rl_root_goal_term_threshold) & root_visible & past_warmup & goal_deadline_reached
 
                 # RL environments terminate on fall, invalid obs, or goal deviation
@@ -2308,7 +2322,7 @@ def compute_obj_observations_pca_corners(root_states, tar_states, pca_corners, r
     corner_center = pca_corners.mean(dim=1, keepdim=True)
     centered_corners = pca_corners - corner_center
     cov = torch.matmul(centered_corners.transpose(1, 2), centered_corners) / float(centered_corners.shape[1])
-    _, pca_axes = torch.linalg.eigh(cov)
+    pca_axes = box_pca_axes(pca_corners, cov)
     aligned_corners = torch.matmul(centered_corners, pca_axes)
     local_min = aligned_corners.min(dim=1).values
     local_max = aligned_corners.max(dim=1).values

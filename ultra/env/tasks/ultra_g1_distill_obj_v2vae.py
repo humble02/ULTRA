@@ -9,6 +9,7 @@ from isaacgym import gymapi, gymutil, gymtorch
 from isaacgym.torch_utils import *
 
 from utils import torch_utils
+from utils.box_pca import box_pca_axes
 from rl_games.algos_torch import torch_ext
 import torch.nn as nn
 import torch.nn.functional as F
@@ -54,6 +55,8 @@ class UltraDistillObjV2Point(UltraG1Retarget):
 
     def __init__(self, cfg, sim_params, physics_engine, device_type, device_id, headless):
         super().__init__(cfg=cfg, sim_params=sim_params, physics_engine=physics_engine, device_type=device_type, device_id=device_id, headless=headless)
+        # Reuse the 4096-env training frame, including in one-env inference.
+        self._object_pca_axes = box_pca_axes(self.object_corners)
         self.action_buf = torch.zeros(
             (self.num_envs, 29), device=self.device, dtype=torch.float)
         self.mu_buf = torch.zeros(
@@ -900,7 +903,8 @@ class UltraDistillObjV2Point(UltraG1Retarget):
                 camera_rot_noise=self.camera_rot_noise,
                 camera_pos_noise=self.camera_pos_noise,
                 fixed_surface_sampling=self.point_fixed_grid_sampling,
-                surface_grid_resolution=self.point_surface_grid_resolution
+                surface_grid_resolution=self.point_surface_grid_resolution,
+                pca_axes=self._object_pca_axes[current_object_ids],
             )
         else:
             # Use original point cloud observations
@@ -1909,7 +1913,8 @@ def compute_obj_observations_pca_corners(root_states, tar_states, pca_corners, r
                                          return_randomized_points=False,
                                          disable_geometry_noise=False,
                                          fixed_surface_sampling=False,
-                                         surface_grid_resolution=None):
+                                         surface_grid_resolution=None,
+                                         pca_axes=None):
     """
     Deployment-friendly observation using a sampled visible point cloud.
     Sample 64 surface points from the PCA box that fall inside the humanoid head camera frustum.
@@ -1976,7 +1981,10 @@ def compute_obj_observations_pca_corners(root_states, tar_states, pca_corners, r
     corner_center = pca_corners.mean(dim=1, keepdim=True)
     centered_corners = pca_corners - corner_center
     cov = torch.matmul(centered_corners.transpose(1, 2), centered_corners) / float(centered_corners.shape[1])
-    _, pca_axes = torch.linalg.eigh(cov)
+    if pca_axes is None:
+        pca_axes = box_pca_axes(pca_corners, cov)
+    else:
+        pca_axes = pca_axes.to(device=cov.device, dtype=cov.dtype)
     aligned_corners = torch.matmul(centered_corners, pca_axes)
     local_min = aligned_corners.min(dim=1).values
     local_max = aligned_corners.max(dim=1).values
