@@ -1,0 +1,17 @@
+{
+  "candidate": "goal_deadline_penalty_wiring",
+  "starting_checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00006500.pth",
+  "initial_student_epoch": 6000,
+  "initial_checkpoint_epoch": 6500,
+  "seed": 42,
+  "single_training_change": "Connect the existing deadline failure reward buffer to the actual termination reward term; preserve physical termination flags and GAE bootstrap.",
+  "PPO_configuration_changed": false,
+  "reward_changed": true,
+  "privileged_distillation_retained": true,
+  "checkpoint_and_evaluation_schedule": "baseline then 200/400/600/800/1000 new updates, synchronous fail-closed barriers",
+  "simulation_state_during_evaluation": "Retained live; no training steps; RNG restored after benchmark subprocesses.",
+  "acceptance_case_selection": "Freeze independent motion-family cases before looking at their outcomes; prior training may already have seen these motions.",
+  "second_training_seed": 43,
+  "reward_change": "Restore the existing configured -50 goal-failure penalty (effective -12.5 after inherited curriculum scaling); no lift/release shaping added.",
+  "next_candidate_on_rejection": "gated_mode_coverage, starting from the same original RL500 checkpoint with deadline-penalty feature disabled."
+}

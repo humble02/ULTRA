@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise a complete RL checkpoint continuation for three small GPU updates."""
 import argparse
+import inspect
 import json
 import os
 from pathlib import Path
@@ -57,7 +58,53 @@ def main():
     UltraDistillObjV3RL._reset_target = target_reset
     original_actor = UltraAgentDistill._actor_loss
     original_gradients = UltraAgentDistill.calc_gradients
-    gradients, replay = [], {}
+    gradients, replay, gradient_audit = [], {}, {}
+    routing = {"distillation_reference_goal_checks": 0, "PPO_random_goal_checks": 0}
+    original_humanoid = UltraDistillObjV3RL._compute_humanoid_obs
+    original_task_obs = UltraDistillObjV3RL._compute_task_obs
+    reference_goal = {}
+
+    def humanoid_obs(self, env_ids, ref_obs, *args, **kwargs):
+        reference_goal["positions"] = ref_obs[:, 71:74].clone()
+        return original_humanoid(self, env_ids, ref_obs, *args, **kwargs)
+
+    def task_obs(self, env_ids, ref_obs, student_obs=False):
+        if student_obs:
+            prior = self.prior_mask[env_ids]
+            assert torch.equal(ref_obs[~prior, 71:74], reference_goal["positions"][~prior])
+            assert torch.equal(ref_obs[prior, 71:74], self.rl_target_obj_pos[env_ids[prior]])
+            routing["distillation_reference_goal_checks"] += int((~prior).sum())
+            routing["PPO_random_goal_checks"] += int(prior.sum())
+        return original_task_obs(self, env_ids, ref_obs, student_obs)
+
+    UltraDistillObjV3RL._compute_humanoid_obs = humanoid_obs
+    UltraDistillObjV3RL._compute_task_obs = task_obs
+    original_backward = torch.Tensor.backward
+
+    def audited_backward(tensor, *args, **kwargs):
+        caller = inspect.currentframe().f_back
+        if not gradient_audit and caller.f_code.co_name == "calc_gradients" and "distill_loss" in caller.f_locals:
+            local = caller.f_locals
+            agent = local["self"]
+            selected = [(name, p) for name, p in agent.model.named_parameters()
+                        if p.requires_grad and "prior_mu_head" in name]
+            vectors = {}
+            for label, loss in (("distillation", local["distill_loss"]),
+                                ("PPO_and_critic", local["rl_loss"]),
+                                ("prior_action_anchor", local["prior_action_loss"] * local["prior_action_coeff"])):
+                grads = torch.autograd.grad(loss, [p for _, p in selected], retain_graph=True, allow_unused=True)
+                vector = torch.cat([(g if g is not None else torch.zeros_like(p)).detach().flatten()
+                                    for (_, p), g in zip(selected, grads)])
+                assert torch.isfinite(vector).all()
+                vectors[label] = vector
+                gradient_audit[label + "_gradient_l2"] = float(vector.norm())
+            a, b = vectors["distillation"], vectors["PPO_and_critic"]
+            gradient_audit.update(parameters=[name for name, _ in selected],
+                                 distill_PPO_cosine=float(torch.dot(a, b) / (a.norm() * b.norm()).clamp_min(1e-12)),
+                                 scope="First small-batch update only; not representative training prevalence")
+        return original_backward(tensor, *args, **kwargs)
+
+    torch.Tensor.backward = audited_backward
 
     def actor_loss(self, *arguments, **keywords):
         result = original_actor(self, *arguments, **keywords)
@@ -98,10 +145,15 @@ def main():
     assert initial["resume_checks"]["optimizer_verified_exact"] and not initial["fresh_rl_optimizer"]
     assert gradients and max(gradients) > 0
     assert checks["root_resets"] >= 6 and checks["object_resets"] >= 6
+    assert routing["distillation_reference_goal_checks"] > 0 and routing["PPO_random_goal_checks"] > 0
+    assert gradient_audit["distillation_gradient_l2"] > 0
+    assert gradient_audit["PPO_and_critic_gradient_l2"] > 0
     result = {"passed": True, "completed_updates": 3, "reset_checks": checks,
               "resume_checks": initial["resume_checks"], "rollout_replay": replay,
               "PPO_actor_backward_calls": len(gradients), "PPO_actor_gradient_max_l1": max(gradients),
               "actor_warmup_was_not_restarted": True, "not_a_success_rate_evaluation": True}
+    result.update(goal_routing=routing, gradient_audit=gradient_audit,
+                  observation_checks=initial["observation_checks"])
     (run / "verification.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 

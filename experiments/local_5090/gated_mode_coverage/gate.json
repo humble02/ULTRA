@@ -1,0 +1,18 @@
+{
+  "interval": 200,
+  "max_new_updates": 1000,
+  "required_final_gain": 0.1,
+  "timeout_seconds": 7200,
+  "historical_baseline_report": "output/reproduction/finetune_fixed_6000_20261022/benchmarks/epoch_6500/attempt_1/summary.json",
+  "main_metrics": [
+    "point_goal_task_success",
+    "point_goal_strict_carry_success"
+  ],
+  "gate_rule": "Point-goal task and carry counts in each engine must not decrease from the previous checkpoint. Full-track counts must not fall below baseline. At 1000 updates, point-goal task AND carry in each engine must gain at least 10 percentage points.",
+  "on_failure": "save checkpoint and stop; no automatic retry or threshold relaxation",
+  "long_training_allowed": false,
+  "long_training_requirements": [
+    "independent expanded acceptance cases",
+    "second training seed"
+  ]
+}

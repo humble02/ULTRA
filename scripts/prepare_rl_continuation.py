@@ -25,6 +25,8 @@ def main():
     parser.add_argument("--initial-student-epoch", type=int, default=6000)
     parser.add_argument("--source-num-envs", type=int, default=4096)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--smoke-envs", type=int, default=8)
+    parser.add_argument("--seed", type=int)
     args = parser.parse_args()
     assert args.label and all(c.isalnum() or c in "_-" for c in args.label)
     checkpoint = args.checkpoint.resolve()
@@ -39,7 +41,19 @@ def main():
     training = yaml.safe_load((args.config_dir / "training.yaml").read_text())
     config = training["params"]["config"]
     assert config["actor_schedule_start_epoch"] == args.initial_student_epoch
+    if args.seed is not None:
+        training["params"]["seed"] = args.seed
+    gate_path = args.config_dir / "gate.json"
+    gate = json.loads(gate_path.read_text()) if gate_path.exists() and not args.smoke else None
+    if gate:
+        assert gate["interval"] == 200 and gate["max_new_updates"] == 1000
+        config["max_epochs"] = epoch + gate["max_new_updates"] - 1
+        # Evaluated checkpoints must never be overwritten by the base loop.
+        config["save_frequency"] = 0
     run.mkdir(parents=True)
+    if gate:
+        for name in ("gate.json", "development_cohort.json", "acceptance_cohort.json"):
+            shutil.copy2(args.config_dir / name, run / name)
     if args.smoke:
         manifest = json.loads((ROOT / "output/reproduction/student_10000_benchmark/manifest.json").read_text())
         motions = run / "motions"
@@ -50,8 +64,9 @@ def main():
             for row in selected:
                 source = ROOT / row["motion"]
                 (motions / source.name).symlink_to(source)
-        environment["env"].update(numEnvs=8, motion_file=str(motions))
-        config.update(horizon_length=2, minibatch_size=16, mini_epochs=2,
+        assert args.smoke_envs >= 8 and args.smoke_envs % 4 == 0
+        environment["env"].update(numEnvs=args.smoke_envs, motion_file=str(motions))
+        config.update(horizon_length=2, minibatch_size=args.smoke_envs * 2, mini_epochs=2,
                       max_epochs=epoch + 2, save_frequency=1)
         output = run / "training_output"
     for name, value in (("training.yaml", training), ("environment.yaml", environment)):
@@ -60,6 +75,7 @@ def main():
     frame = int(saved["frame"])
     request = {
         "requested_at": datetime.now(timezone.utc).isoformat(), "initial_checkpoint": str(checkpoint),
+        "experiment_profile": str(args.config_dir.resolve()),
         "initial_checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         "initial_checkpoint_epoch": epoch, "initial_student_epoch": args.initial_student_epoch,
         "initial_rl_epochs": epoch - args.initial_student_epoch, "resume_optimizer": True,
@@ -76,18 +92,32 @@ def main():
             "kl_threshold", "lr_min", "lr_max", "e_clip", "actor_warmup_epochs", "actor_ramp_epochs")},
         "environment_training_changes": {k: environment["env"]["rl_finetune"][k] for k in (
             "points_goal_fraction", "feasible_object_goals", "root_xy_reward")},
+        "goal_deadline_penalty": environment["env"]["rl_finetune"].get("goal_deadline_penalty", False),
         "new_correctness_fixes": ["write_root_height_to_original_tensor", "ground_feasible_object_initial_state"],
         "full_simulator_state_available": saved.get("env_state") is not None,
         "smoke_only": args.smoke,
+        "seed": training["params"]["seed"],
+        "evaluation_gate": gate,
+        "distillation_mode_coverage": {k: environment["env"]["rl_finetune"].get(k, 0.0) for k in (
+            "distill_full_track_fraction", "distill_point_goal_fraction")},
         "evaluation": {"early_checkpoint_epoch": epoch + 200, "periodic_first_checkpoint_epoch": epoch + 500,
                        "interval": 500, "rollouts_per_checkpoint": 80},
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
     }
+    if gate:
+        request["development_cohort_manifest"] = str(run / "development_cohort.json")
+        request["acceptance_cohort_manifest"] = str(run / "acceptance_cohort.json")
+        request["evaluation"] = {"baseline_epoch": epoch, "interval": gate["interval"],
+                                 "max_new_updates": gate["max_new_updates"], "rollouts_per_checkpoint": 80,
+                                 "synchronous": True, "long_training_allowed": False}
     write_json(run / "training_request.json", request)
     hashes = source_hashes()
     write_json(run / "source_sha256.json", hashes)
+    config_files = ["training.yaml", "environment.yaml"]
+    if gate:
+        config_files += ["gate.json", "development_cohort.json", "acceptance_cohort.json"]
     write_json(run / "config_sha256.json", {name: hashlib.sha256((run / name).read_bytes()).hexdigest()
-                                            for name in ("training.yaml", "environment.yaml")})
+                                            for name in config_files})
     snapshot = run / "source_snapshot"
     paths = [p for p in hashes if p.endswith(".py") or p.startswith("ultra/data/cfg/")]
     paths += ["scripts/run_finetune_checkpointed.py", "scripts/prepare_rl_continuation.py",

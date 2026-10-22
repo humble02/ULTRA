@@ -132,6 +132,10 @@ def main():
     stopping = []
     signal.signal(signal.SIGTERM, lambda signum, frame: stopping.append(signum))
     signal.signal(signal.SIGINT, lambda signum, frame: stopping.append(signum))
+    gate = None
+    if run_request.get("evaluation_gate"):
+        from rl_experiment_gate import EvaluationGate
+        gate = EvaluationGate(run, run_request, stopping)
 
     def write_status(value):
         tmp = status_path.with_suffix(".json.tmp")
@@ -201,6 +205,17 @@ def main():
             assert bool(((commands == 0) | (commands == 1)).all())
             observation_checks = {"reserved_points_goal_envs": count, "point_mode_masks_correct": True,
                                   "commands_binary": True}
+        task = self.vec_env.env.task
+        full_count = int(task.num_envs // 4 * task.distill_full_track_fraction)
+        point_count = int(task.num_envs // 4 * task.distill_point_goal_fraction)
+        for name in ("keep_obj_point_mask", "keep_obj_trans_mask", "keep_obj_rot_mask", "keep_obj_pos_mask",
+                     "keep_human_move_mask", "keep_global_goal_mask", "keep_local_goal_mask", "keep_goal_mask"):
+            values = getattr(task, name)
+            assert bool(values[:full_count].all()), name
+            expected = name in ("keep_obj_point_mask", "keep_obj_trans_mask", "keep_human_move_mask", "keep_goal_mask")
+            assert bool((values[full_count:full_count + point_count] == expected).all()), name
+        observation_checks.update(distill_full_track_envs=full_count, distill_points_goal_envs=point_count,
+                                  distill_random_envs=task.num_envs // 4 - full_count - point_count)
         path = run / "runtime_initialization_verification.json"
         path.write_text(json.dumps({"passed": True, "initial_student_epoch": request["initial_student_epoch"],
                                    "initial_checkpoint_epoch": checkpoint_epoch,
@@ -210,6 +225,8 @@ def main():
                                    "distillation_envs": int((~self.prior_mask).sum()),
                                    "ppo_envs": int(self.prior_mask.sum()),
                                    "observation_checks": observation_checks}, indent=2) + "\n")
+        if gate is not None:
+            gate.initialize(self)
 
     def log(self, train_info, frame):
         original_log(self, train_info, frame)
@@ -267,6 +284,8 @@ def main():
             data.update(state="stopped_after_checkpoint", checkpoint=str(path) + ".pth")
             write_status(data)
             raise SystemExit(0)
+        if gate is not None:
+            gate.after_update(self)
     ultra_agent_distill_vae_rl.UltraAgentDistill._log_train_info = log
     cls._init_train = initialize
     print("RL prior activation checkpointing enabled; FP32 batches and configured objectives retained.", flush=True)

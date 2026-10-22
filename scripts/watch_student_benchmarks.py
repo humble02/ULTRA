@@ -93,7 +93,7 @@ def main():
     run = args.run_dir.resolve()
     checkpoints = args.checkpoint_dir.resolve()
     assert ROOT in run.parents and ROOT in checkpoints.parents
-    assert args.interval > 0 and args.interval % 500 == 0
+    assert args.interval > 0
     lock = (run / "evaluation_watcher.lock").open("w")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     expected = json.loads((run / "source_sha256.json").read_text())

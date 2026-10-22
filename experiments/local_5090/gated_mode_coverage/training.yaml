@@ -1,0 +1,122 @@
+params:
+  seed: 42
+  algo:
+    name: ultra
+  model:
+    name: ultra
+  network:
+    name: ultra
+    separate: true
+    disable_double_critic: true
+    space:
+      continuous:
+        mu_activation: None
+        sigma_activation: None
+        mu_init:
+          name: default
+        sigma_init:
+          name: const_initializer
+          val: -2.9
+        fixed_sigma: true
+        learn_sigma: false
+    mlp:
+      units:
+      - 1024
+      - 1024
+      - 512
+      activation: relu
+      d2rl: false
+      initializer:
+        name: default
+      regularizer:
+        name: None
+    point_cloud:
+      enabled: true
+      num_points: 64
+      point_dim: 3
+      raw_obs_dim: 192
+      hidden_dim: 256
+      output_dim: 256
+      projection_dim: 256
+    modal_config:
+      freeze_encoder_decoder: true
+      freeze_point_encoder: false
+      freeze_tokenizers: false
+      rl_finetune_film_scale: 0.1
+      goal_dim: 3
+      command_dim: 4
+      local_goal_dim: 31
+      obj_trans_dim: 3
+      obj_rot_dim: 6
+      obj_pos_dim: 3
+      raw_point_obs_dim: 192
+      task_obs_dim: 204
+      mask_dim: 242
+      token_dim: 256
+      fusion_hidden: 512
+      transformer_heads: 4
+      transformer_layers: 2
+      transformer_ffn_dim: 1024
+      debug_modal_layout: true
+      mask_routing: true
+      critic_separate_backbone: true
+      critic_mlp_hidden: 512
+      critic_mlp_layers: 3
+  load_checkpoint: false
+  config:
+    name: g1_student_finetune
+    full_experiment_name: g1_student_finetune
+    env_name: rlgpu
+    multi_gpu: false
+    ppo: true
+    mixed_precision: false
+    normalize_input: false
+    normalize_value: true
+    reward_shaper:
+      scale_value: 1
+    normalize_advantage: true
+    gamma: 0.99
+    tau: 0.95
+    learning_rate: 2.0e-05
+    lr_schedule: adaptive
+    lr_final: 5e-5
+    lr_warmup_end: 500
+    lr_decay_end: 5500
+    score_to_win: 20000
+    max_epochs: 7499
+    save_best_after: 500
+    save_frequency: 0
+    print_stats: true
+    grad_norm: 1.0
+    entropy_coef: 0.0
+    truncate_grads: true
+    local_goal_pred_coef: 1.0
+    e_clip: 0.1
+    horizon_length: 16
+    minibatch_size: 8192
+    mini_epochs: 4
+    critic_coef: 5
+    clip_value: false
+    seq_len: 4
+    bounds_loss_coef: 10
+    expert_loss_coef: 1
+    aux_loss_coef: 1.0
+    disable_critic: false
+    two_stage_gradients: false
+    find_unused_parameters: false
+    debug_unused_params: false
+    enable_eps_greedy: false
+    allow_critic_mismatch: true
+    save_migrated_checkpoint: false
+    resume_from: null
+    save_intermediate: true
+    vae_dim: 64
+    prior_action_loss_coef: 0.6
+    ppo_target_kl: 0.04
+    schedule_type: standard_epoch
+    kl_threshold: 0.02
+    lr_min: 1.0e-06
+    lr_max: 2.0e-05
+    actor_warmup_epochs: 100
+    actor_ramp_epochs: 100
+    actor_schedule_start_epoch: 6000

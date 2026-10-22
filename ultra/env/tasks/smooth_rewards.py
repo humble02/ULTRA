@@ -263,4 +263,6 @@ class SmoothRewards():
     def _reward_termination(self):
         # self.reset_buf * ~self.time_out_buf
 
-        return self.env._terminate_buf * 1.0
+        # Goal-deadline failure can carry a penalty while the episode continues.
+        # Keep the physical termination flag separate for correct PPO bootstrap.
+        return getattr(self.env, "_reward_terminate_buf", self.env._terminate_buf) * 1.0

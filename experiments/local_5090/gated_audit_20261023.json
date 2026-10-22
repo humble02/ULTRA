@@ -1,0 +1,570 @@
+{
+  "date": "2026-10-23",
+  "status": "prelaunch_validation_passed; no candidate success-rate measurement yet",
+  "starting_checkpoint_sha256": "b96e625123f0db4716d9ad835696f896b8756506187a79ae2f5c11af6003b22e",
+  "confirmed_finding": "Local V3 reset wrote _reward_terminate_buf for missed visible goal deadlines, but SmoothRewards._reward_termination read only physical _terminate_buf. New candidate connects the reward-only failure buffer without changing done/bootstrap flags.",
+  "candidate_order": [
+    "gated_goal_penalty",
+    "gated_mode_coverage"
+  ],
+  "candidate_separation": "The second candidate runs only after metric rejection of the first and starts from the original RL500 checkpoint with the deadline penalty disabled. Infrastructure failures stop the suite.",
+  "config_differences_from_reset_only": {
+    "gated_goal_penalty": {
+      "environment.yaml": [
+        {
+          "path": ".env.rl_finetune.goal_deadline_penalty",
+          "previous": null,
+          "current": true
+        }
+      ],
+      "training.yaml": [
+        {
+          "path": ".params.config.max_epochs",
+          "previous": 1000000,
+          "current": 7499
+        },
+        {
+          "path": ".params.config.save_frequency",
+          "previous": 100,
+          "current": 0
+        }
+      ]
+    },
+    "gated_mode_coverage": {
+      "environment.yaml": [
+        {
+          "path": ".env.rl_finetune.distill_full_track_fraction",
+          "previous": null,
+          "current": 0.25
+        },
+        {
+          "path": ".env.rl_finetune.distill_point_goal_fraction",
+          "previous": null,
+          "current": 0.25
+        }
+      ],
+      "training.yaml": [
+        {
+          "path": ".params.config.max_epochs",
+          "previous": 1000000,
+          "current": 7499
+        },
+        {
+          "path": ".params.config.save_frequency",
+          "previous": 100,
+          "current": 0
+        }
+      ]
+    }
+  },
+  "reward_and_GAE_verification": {
+    "passed": true,
+    "case_order": [
+      "reached",
+      "missed_deadline",
+      "before_deadline",
+      "hidden_root",
+      "hidden_object",
+      "fall"
+    ],
+    "old_penalty_contributions": [
+      -0.0,
+      -0.0,
+      -0.0,
+      -0.0,
+      -0.0,
+      -12.5
+    ],
+    "new_penalty_contributions": [
+      0.0,
+      -12.5,
+      0.0,
+      0.0,
+      0.0,
+      -12.5
+    ],
+    "flag_disabled_matches_previous_reward_behavior": true,
+    "deadline_failure_penalty_effective": -12.5,
+    "deadline_failure_does_not_end_episode": true,
+    "physical_termination_and_GAE_bootstrap_preserved": true,
+    "GAE_terminal_timeout_continuing_expected": [
+      1.0,
+      4.960000038146973,
+      6.841000080108643
+    ],
+    "advantage_normalization_excludes_distillation": true,
+    "equal_goal_component_with_and_without_lift_history": [
+      11.0,
+      11.0
+    ],
+    "scope": "Controlled CPU inputs, actual reward/reset/GAE methods; no measured policy improvement."
+  },
+  "gate_and_masks_verification": {
+    "passed": true,
+    "full_track_envs": 256,
+    "point_goal_envs": 256,
+    "random_distillation_envs_unchanged": 512,
+    "PPO_envs_unchanged": 3072,
+    "noncontiguous_and_disabled_mode_checks": true,
+    "historical_regressions_rejected": {
+      "6700": [
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 16,
+          "previous": 16,
+          "actual": 11,
+          "minimum": 16,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 11,
+          "previous": 11,
+          "actual": 8,
+          "minimum": 11,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 14,
+          "previous": 14,
+          "actual": 11,
+          "minimum": 14,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 9,
+          "previous": 9,
+          "actual": 7,
+          "minimum": 9,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 3,
+          "previous": 3,
+          "actual": 2,
+          "minimum": 3,
+          "passed": false
+        }
+      ],
+      "7000": [
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 16,
+          "previous": 16,
+          "actual": 13,
+          "minimum": 16,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 11,
+          "previous": 11,
+          "actual": 9,
+          "minimum": 11,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 4,
+          "previous": 4,
+          "actual": 3,
+          "minimum": 4,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 2,
+          "previous": 2,
+          "actual": 1,
+          "minimum": 2,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 14,
+          "previous": 14,
+          "actual": 11,
+          "minimum": 14,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 9,
+          "previous": 9,
+          "actual": 6,
+          "minimum": 9,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 3,
+          "previous": 3,
+          "actual": 2,
+          "minimum": 3,
+          "passed": false
+        }
+      ],
+      "7500": [
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 16,
+          "previous": 16,
+          "actual": 13,
+          "minimum": 16,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 11,
+          "previous": 11,
+          "actual": 8,
+          "minimum": 11,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 4,
+          "previous": 4,
+          "actual": 1,
+          "minimum": 4,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 2,
+          "previous": 2,
+          "actual": 1,
+          "minimum": 2,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 14,
+          "previous": 14,
+          "actual": 12,
+          "minimum": 14,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 3,
+          "previous": 3,
+          "actual": 2,
+          "minimum": 3,
+          "passed": false
+        }
+      ],
+      "8000": [
+        {
+          "engine": "gym",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 16,
+          "previous": 16,
+          "actual": 15,
+          "minimum": 16,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 4,
+          "previous": 4,
+          "actual": 1,
+          "minimum": 4,
+          "passed": false
+        },
+        {
+          "engine": "gym",
+          "mode": "object_obs",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 2,
+          "previous": 2,
+          "actual": 0,
+          "minimum": 2,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 14,
+          "previous": 14,
+          "actual": 8,
+          "minimum": 14,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "full_track",
+          "metric": "carry_and_place_successes",
+          "episodes": 20,
+          "baseline": 9,
+          "previous": 9,
+          "actual": 4,
+          "minimum": 9,
+          "passed": false
+        },
+        {
+          "engine": "mujoco",
+          "mode": "object_obs",
+          "metric": "task_successes",
+          "episodes": 20,
+          "baseline": 3,
+          "previous": 3,
+          "actual": 0,
+          "minimum": 3,
+          "passed": false
+        }
+      ]
+    },
+    "checkpoint_at_exact_200_boundary": true,
+    "failed_gate_exits_training": true,
+    "flat_1000_update_run_rejected": true,
+    "successful_short_run_stops_for_acceptance": true,
+    "acceptance_and_replication_pipeline_tests": {
+      "short_failure": {
+        "expected_eligibility": false,
+        "stages": [
+          "seed42_short_training"
+        ]
+      },
+      "acceptance_failure": {
+        "expected_eligibility": false,
+        "stages": [
+          "seed42_short_training",
+          "baseline",
+          "seed42"
+        ]
+      },
+      "replication_failure": {
+        "expected_eligibility": false,
+        "stages": [
+          "seed42_short_training",
+          "baseline",
+          "seed42",
+          "seed43_replication"
+        ]
+      },
+      "all_pass": {
+        "expected_eligibility": true,
+        "stages": [
+          "seed42_short_training",
+          "baseline",
+          "seed42",
+          "seed43_replication",
+          "seed43"
+        ]
+      }
+    },
+    "synthetic_success_cases_are_gate_tests_not_measured_policy_improvements": true
+  },
+  "real_GPU_three_update_checks": {
+    "gated_penalty_smoke_20261023": {
+      "passed": true,
+      "completed_updates": 3,
+      "reset_checks": {
+        "root_resets": 24,
+        "object_resets": 24,
+        "max_root_height_error_m": 9.313225746154785e-09,
+        "minimum_box_clearance_m": 0.009999990463256836
+      },
+      "resume_checks": {
+        "full_model_verified_exact": true,
+        "optimizer_verified_exact": true,
+        "optimizer_state_entries": 89,
+        "value_normalizer_verified_exact": true,
+        "restored_frame": 32768000,
+        "restored_learning_rate": 1.3333333333333335e-05,
+        "actor_schedule_start_epoch": 6000,
+        "environment_schedule_step": 8000
+      },
+      "rollout_replay": {
+        "mu_max_abs_error": 2.384185791015625e-07,
+        "negative_logp_max_abs_error": 1.1444091796875e-05
+      },
+      "PPO_actor_backward_calls": 7,
+      "PPO_actor_gradient_max_l1": 0.20000001788139343,
+      "actor_warmup_was_not_restarted": true,
+      "not_a_success_rate_evaluation": true,
+      "goal_routing": {
+        "distillation_reference_goal_checks": 32,
+        "PPO_random_goal_checks": 96
+      },
+      "gradient_audit": {
+        "distillation_gradient_l2": 0.7224247455596924,
+        "PPO_and_critic_gradient_l2": 1.914100170135498,
+        "prior_action_anchor_gradient_l2": 0.26403406262397766,
+        "parameters": [
+          "a2c_network.prior_mu_head.0.weight",
+          "a2c_network.prior_mu_head.0.bias",
+          "a2c_network.prior_mu_head.2.weight",
+          "a2c_network.prior_mu_head.2.bias"
+        ],
+        "distill_PPO_cosine": 0.1480938047170639,
+        "scope": "First small-batch update only; not representative training prevalence"
+      },
+      "observation_checks": {
+        "reserved_points_goal_envs": 6,
+        "point_mode_masks_correct": true,
+        "commands_binary": true,
+        "distill_full_track_envs": 0,
+        "distill_points_goal_envs": 0,
+        "distill_random_envs": 4
+      }
+    },
+    "gated_coverage_smoke_20261023": {
+      "passed": true,
+      "completed_updates": 3,
+      "reset_checks": {
+        "root_resets": 24,
+        "object_resets": 24,
+        "max_root_height_error_m": 9.313225746154785e-09,
+        "minimum_box_clearance_m": 0.009999990463256836
+      },
+      "resume_checks": {
+        "full_model_verified_exact": true,
+        "optimizer_verified_exact": true,
+        "optimizer_state_entries": 89,
+        "value_normalizer_verified_exact": true,
+        "restored_frame": 32768000,
+        "restored_learning_rate": 1.3333333333333335e-05,
+        "actor_schedule_start_epoch": 6000,
+        "environment_schedule_step": 8000
+      },
+      "rollout_replay": {
+        "mu_max_abs_error": 2.384185791015625e-07,
+        "negative_logp_max_abs_error": 1.1444091796875e-05
+      },
+      "PPO_actor_backward_calls": 7,
+      "PPO_actor_gradient_max_l1": 0.20000001788139343,
+      "actor_warmup_was_not_restarted": true,
+      "not_a_success_rate_evaluation": true,
+      "goal_routing": {
+        "distillation_reference_goal_checks": 32,
+        "PPO_random_goal_checks": 96
+      },
+      "gradient_audit": {
+        "distillation_gradient_l2": 0.7160345315933228,
+        "PPO_and_critic_gradient_l2": 1.914100170135498,
+        "prior_action_anchor_gradient_l2": 0.23389512300491333,
+        "parameters": [
+          "a2c_network.prior_mu_head.0.weight",
+          "a2c_network.prior_mu_head.0.bias",
+          "a2c_network.prior_mu_head.2.weight",
+          "a2c_network.prior_mu_head.2.bias"
+        ],
+        "distill_PPO_cosine": 0.012150644324719906,
+        "scope": "First small-batch update only; not representative training prevalence"
+      },
+      "observation_checks": {
+        "reserved_points_goal_envs": 6,
+        "point_mode_masks_correct": true,
+        "commands_binary": true,
+        "distill_full_track_envs": 1,
+        "distill_points_goal_envs": 1,
+        "distill_random_envs": 2
+      }
+    }
+  },
+  "GPU_check_scope": "16 environments, real PPO and distillation updates; not full 4096-env performance or success-rate evidence. Coverage GPU check preceded reward wiring; controlled CPU verification shows the disabled reward flag preserves previous behavior.",
+  "acceptance_cohort": {
+    "count": 100,
+    "original_families": 100,
+    "development_family_overlap": 0,
+    "cases_by_object": {
+      "largebox": 28,
+      "plasticbox": 23,
+      "smallbox": 21,
+      "suitcase": 28
+    },
+    "manifest_sha256": "81fc3203951d5451fbe156598752d798c184f976033979a021e7780ce2716c9b",
+    "historical_training_exposure_unknown": true
+  },
+  "remaining_hypotheses": [
+    "Distance-based reward does not encode lift/release history; equal endpoint poses can receive equal goal reward.",
+    "A single small minibatch gradient comparison is not evidence of persistent objective conflict.",
+    "Training goal horizons and sampled goal feasibility need outcome-level analysis if these candidates fail."
+  ],
+  "acceptance_rules": {
+    "interval": 200,
+    "max_new_updates": 1000,
+    "required_final_gain": 0.1,
+    "timeout_seconds": 7200,
+    "historical_baseline_report": "output/reproduction/finetune_fixed_6000_20261022/benchmarks/epoch_6500/attempt_1/summary.json",
+    "main_metrics": [
+      "point_goal_task_success",
+      "point_goal_strict_carry_success"
+    ],
+    "gate_rule": "Point-goal task and carry counts in each engine must not decrease from the previous checkpoint. Full-track counts must not fall below baseline. At 1000 updates, point-goal task AND carry in each engine must gain at least 10 percentage points.",
+    "on_failure": "save checkpoint and stop; no automatic retry or threshold relaxation",
+    "long_training_allowed": false,
+    "long_training_requirements": [
+      "independent expanded acceptance cases",
+      "second training seed"
+    ]
+  },
+  "long_training": "Requires first 1000-update gates, 100 independent acceptance cases per setting, and repeat success with training seed43. Each subsequent 1000-update window still requires >=10pp gain, capped at 10 windows."
+}

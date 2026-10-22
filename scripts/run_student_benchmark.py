@@ -42,6 +42,13 @@ def source_hashes():
     paths.update((ROOT / "ultra/data/cfg").rglob("*.yaml"))
     paths.update((ROOT / "ultra/data/assets").rglob("*.xml"))
     paths.update((ROOT / "scripts").glob("*benchmark*.py"))
+    paths.update(ROOT / "scripts" / name for name in (
+        "run_finetune_checkpointed.py", "rl_experiment_gate.py", "prepare_rl_continuation.py",
+        "run_gated_rl_experiment.py"))
+    for profile_name in ("gated_mode_coverage", "gated_goal_penalty"):
+        profile = ROOT / "experiments/local_5090" / profile_name
+        paths.update(profile / name for name in ("training.yaml", "environment.yaml", "gate.json",
+                     "experiment.json", "development_cohort.json", "acceptance_cohort.json") if (profile / name).is_file())
     paths.update([ROOT / "ultra/data/assets/objects/point_pca_frames.json", ROOT / "scripts/ultra_env.sh"])
     return {str(p.relative_to(ROOT)): sha(p) for p in sorted(paths)}
 
@@ -57,13 +64,14 @@ def training_epoch(log=None):
 
 
 def prepare(base, epoch, checkpoint=None, policy_architecture="v2_distill", training_log=None, initial_student_epoch=10000,
-            finetune_restart_epoch=None):
+            finetune_restart_epoch=None, cohort_manifest=None):
     base.mkdir(parents=True, exist_ok=True)
-    manifest = json.loads((OLD / "manifest.json").read_text())
+    cohort_manifest = (cohort_manifest or OLD / "manifest.json").resolve()
+    manifest = json.loads(cohort_manifest.read_text())
     manifest.update(epoch=epoch,
                     checkpoint=f"output/student_prior_fixed/g1_student_vae/nn/g1_student_vae_{epoch:08d}.pth",
                     evaluation_revision="training4096_reference_pca_v1",
-                    cohort_source=str((OLD / "manifest.json").relative_to(ROOT)))
+                    cohort_source=str(cohort_manifest.relative_to(ROOT)))
     if checkpoint is not None:
         manifest["checkpoint"] = str(checkpoint.resolve().relative_to(ROOT))
     if policy_architecture == "v3_rl":
@@ -125,12 +133,13 @@ def main():
     parser.add_argument("--training-log", type=Path, help="Log for the training run being evaluated")
     parser.add_argument("--initial-student-epoch", type=int, default=10000)
     parser.add_argument("--finetune-restart-epoch", type=int)
+    parser.add_argument("--cohort-manifest", type=Path)
     args = parser.parse_args()
     os.chdir(ROOT)
     base = args.base.resolve()
     assert base.is_relative_to(ROOT) if hasattr(base, "is_relative_to") else str(base).startswith(str(ROOT) + "/")
     manifest = prepare(base, args.epoch, args.checkpoint, args.policy_architecture, args.training_log,
-                       args.initial_student_epoch, args.finetune_restart_epoch)
+                       args.initial_student_epoch, args.finetune_restart_epoch, args.cohort_manifest)
     if args.prepare_only:
         print(base, flush=True)
         return

@@ -1,0 +1,951 @@
+{
+  "selection_seed": 20261023,
+  "rollout_seed": 42,
+  "checkpoint": "output/student_prior_fixed/g1_student_vae/nn/g1_student_vae_00010000.pth",
+  "modes": [
+    "full_track",
+    "object_obs"
+  ],
+  "object_input": "points",
+  "latent_noise": "zero",
+  "selection": "100 distinct original motion families disjoint from development. Balanced round-robin across objects subject to eligible family availability. Reference geometry/length filters only; no policy outcomes inspected.",
+  "task_success": "finite complete rollout, pelvis never below .25 m, terminal object position 3D distance <.3 m",
+  "strict_placement": "task success plus final 15 controls all within .3 m and vertical error <.1 m, object speed <.2 m/s, hand contact force absent and object-ground support present throughout final 15 controls",
+  "limitations": "Independent acceptance cohort for this experiment, not guaranteed unseen during historical distillation/RL. One deterministic rollout per case and setting.",
+  "motions": [
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_057_096_085_078_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 322,
+      "reference_lift_m": 0.7044925689697266,
+      "reference_xy_displacement_m": 0.8533429503440857,
+      "reference_final_height_change_m": -0.001586422324180603
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_081_079_101_074_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 276,
+      "reference_lift_m": 0.5305863618850708,
+      "reference_xy_displacement_m": 1.4817240238189697,
+      "reference_final_height_change_m": -0.001844644546508789
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_082_074_092_087_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 302,
+      "reference_lift_m": 0.5876172184944153,
+      "reference_xy_displacement_m": 1.3113124370574951,
+      "reference_final_height_change_m": -0.0002867281436920166
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_084_099_080_074_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 298,
+      "reference_lift_m": 0.6182478666305542,
+      "reference_xy_displacement_m": 1.9916678667068481,
+      "reference_final_height_change_m": -0.000701412558555603
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_085_098_077_073_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 322,
+      "reference_lift_m": 0.6308664679527283,
+      "reference_xy_displacement_m": 1.3650792837142944,
+      "reference_final_height_change_m": -6.407499313354492e-05
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_086_086_092_077_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 316,
+      "reference_lift_m": 0.5886655449867249,
+      "reference_xy_displacement_m": 1.2481337785720825,
+      "reference_final_height_change_m": -0.00020989775657653809
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_087_072_082_072_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 366,
+      "reference_lift_m": 0.6450315713882446,
+      "reference_xy_displacement_m": 1.5683397054672241,
+      "reference_final_height_change_m": -0.001519918441772461
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_largebox_090_103_094_084_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 286,
+      "reference_lift_m": 0.552251935005188,
+      "reference_xy_displacement_m": 1.7950187921524048,
+      "reference_final_height_change_m": -0.0012545287609100342
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub12_largebox_039_093_103_075_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 602,
+      "reference_lift_m": 0.6717429757118225,
+      "reference_xy_displacement_m": 1.1546634435653687,
+      "reference_final_height_change_m": 0.05942443013191223
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub12_largebox_045_097_075_075_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 744,
+      "reference_lift_m": 0.7767707109451294,
+      "reference_xy_displacement_m": 2.270928382873535,
+      "reference_final_height_change_m": -0.000723227858543396
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub12_largebox_072_121_080_073_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 768,
+      "reference_lift_m": 0.7202835083007812,
+      "reference_xy_displacement_m": 2.0686514377593994,
+      "reference_final_height_change_m": -2.3543834686279297e-05
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_009_086_082_076_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 380,
+      "reference_lift_m": 0.6754858493804932,
+      "reference_xy_displacement_m": 2.2856452465057373,
+      "reference_final_height_change_m": -0.0005193799734115601
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_010_080_082_082_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 412,
+      "reference_lift_m": 0.7412357926368713,
+      "reference_xy_displacement_m": 2.590205430984497,
+      "reference_final_height_change_m": -8.38935375213623e-06
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_011_084_086_080_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 454,
+      "reference_lift_m": 0.775794267654419,
+      "reference_xy_displacement_m": 2.251141309738159,
+      "reference_final_height_change_m": -0.000325813889503479
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_013_101_087_081_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 342,
+      "reference_lift_m": 0.7647371888160706,
+      "reference_xy_displacement_m": 0.9168519973754883,
+      "reference_final_height_change_m": 0.005300998687744141
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_029_072_094_072_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 422,
+      "reference_lift_m": 0.967318594455719,
+      "reference_xy_displacement_m": 1.310744285583496,
+      "reference_final_height_change_m": -0.00030587613582611084
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_largebox_046_087_126_078_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 302,
+      "reference_lift_m": 0.4619831144809723,
+      "reference_xy_displacement_m": 1.7617573738098145,
+      "reference_final_height_change_m": -0.00012663006782531738
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub3_largebox_005_075_080_079_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 412,
+      "reference_lift_m": 0.6880835294723511,
+      "reference_xy_displacement_m": 1.7417479753494263,
+      "reference_final_height_change_m": 0.0055548399686813354
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub3_largebox_016_087_101_086_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 356,
+      "reference_lift_m": 0.7356539368629456,
+      "reference_xy_displacement_m": 0.5577570199966431,
+      "reference_final_height_change_m": -0.005191013216972351
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_largebox_042_121_121_087_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 452,
+      "reference_lift_m": 0.716632604598999,
+      "reference_xy_displacement_m": 2.3332369327545166,
+      "reference_final_height_change_m": -5.662441253662109e-07
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_largebox_044_123_127_076_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 452,
+      "reference_lift_m": 0.7022819519042969,
+      "reference_xy_displacement_m": 2.8264777660369873,
+      "reference_final_height_change_m": -0.0002215355634689331
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_largebox_045_086_123_072_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 490,
+      "reference_lift_m": 0.7231899499893188,
+      "reference_xy_displacement_m": 1.786279320716858,
+      "reference_final_height_change_m": -5.675852298736572e-05
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_largebox_046_084_094_083_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 404,
+      "reference_lift_m": 0.7208114862442017,
+      "reference_xy_displacement_m": 2.059968948364258,
+      "reference_final_height_change_m": -9.104609489440918e-06
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_largebox_047_093_082_073_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 422,
+      "reference_lift_m": 0.6808252930641174,
+      "reference_xy_displacement_m": 2.1125333309173584,
+      "reference_final_height_change_m": -2.3230910301208496e-05
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_006_086_084_080_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 458,
+      "reference_lift_m": 0.765624463558197,
+      "reference_xy_displacement_m": 2.169484853744507,
+      "reference_final_height_change_m": 0.009245812892913818
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_044_089_072_078_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 362,
+      "reference_lift_m": 0.6092551946640015,
+      "reference_xy_displacement_m": 1.6609907150268555,
+      "reference_final_height_change_m": 0.00043067336082458496
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_045_126_081_082_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 368,
+      "reference_lift_m": 0.6455878019332886,
+      "reference_xy_displacement_m": 2.1250369548797607,
+      "reference_final_height_change_m": -7.972121238708496e-06
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_largebox_047_079_096_081_100_100_100.pt",
+      "object": "largebox",
+      "asset_key": "largebox_100_100_100",
+      "raw_frames": 402,
+      "reference_lift_m": 0.678766667842865,
+      "reference_xy_displacement_m": 1.0631424188613892,
+      "reference_final_height_change_m": 1.2516975402832031e-06
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub12_plasticbox_050_092_081_082_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 398,
+      "reference_lift_m": 0.638340175151825,
+      "reference_xy_displacement_m": 1.1965806484222412,
+      "reference_final_height_change_m": -0.0006025880575180054
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub15_plasticbox_008_086_074_079_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 434,
+      "reference_lift_m": 0.8296950459480286,
+      "reference_xy_displacement_m": 1.7717609405517578,
+      "reference_final_height_change_m": -0.007210925221443176
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub15_plasticbox_011_101_077_084_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 366,
+      "reference_lift_m": 0.7352075576782227,
+      "reference_xy_displacement_m": 1.8153785467147827,
+      "reference_final_height_change_m": 0.016140252351760864
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_007_095_089_077_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 326,
+      "reference_lift_m": 0.5831555724143982,
+      "reference_xy_displacement_m": 1.4702427387237549,
+      "reference_final_height_change_m": -0.017967700958251953
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_008_082_077_080_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 336,
+      "reference_lift_m": 0.5679821968078613,
+      "reference_xy_displacement_m": 1.5191165208816528,
+      "reference_final_height_change_m": -0.021733209490776062
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_009_103_100_074_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 322,
+      "reference_lift_m": 0.5593361258506775,
+      "reference_xy_displacement_m": 2.1128602027893066,
+      "reference_final_height_change_m": -0.020094215869903564
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_010_076_096_080_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 300,
+      "reference_lift_m": 0.5606083273887634,
+      "reference_xy_displacement_m": 1.238417387008667,
+      "reference_final_height_change_m": -0.019199401140213013
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_011_098_095_087_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 322,
+      "reference_lift_m": 0.5783030390739441,
+      "reference_xy_displacement_m": 1.310773253440857,
+      "reference_final_height_change_m": -0.014500662684440613
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_028_093_099_074_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 380,
+      "reference_lift_m": 0.8988953828811646,
+      "reference_xy_displacement_m": 1.336871862411499,
+      "reference_final_height_change_m": -0.00715145468711853
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub16_plasticbox_044_086_099_082_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 268,
+      "reference_lift_m": 0.6278727054595947,
+      "reference_xy_displacement_m": 2.0673635005950928,
+      "reference_final_height_change_m": -0.006627261638641357
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_010_103_100_079_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 432,
+      "reference_lift_m": 0.6170837879180908,
+      "reference_xy_displacement_m": 2.301823377609253,
+      "reference_final_height_change_m": -0.022455543279647827
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_015_084_081_083_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 386,
+      "reference_lift_m": 0.6129329204559326,
+      "reference_xy_displacement_m": 1.7962303161621094,
+      "reference_final_height_change_m": -0.012710228562355042
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_017_091_074_073_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 368,
+      "reference_lift_m": 0.6601849794387817,
+      "reference_xy_displacement_m": 1.5661747455596924,
+      "reference_final_height_change_m": -0.007414042949676514
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_019_091_103_080_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 446,
+      "reference_lift_m": 0.5999573469161987,
+      "reference_xy_displacement_m": 2.2159314155578613,
+      "reference_final_height_change_m": -0.008803308010101318
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_024_098_086_074_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 358,
+      "reference_lift_m": 0.5801374912261963,
+      "reference_xy_displacement_m": 1.018315315246582,
+      "reference_final_height_change_m": -0.009156808257102966
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_025_084_085_073_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 320,
+      "reference_lift_m": 0.7153959274291992,
+      "reference_xy_displacement_m": 0.520051896572113,
+      "reference_final_height_change_m": -0.006609484553337097
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_026_084_080_082_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 336,
+      "reference_lift_m": 0.6714386940002441,
+      "reference_xy_displacement_m": 0.8741697669029236,
+      "reference_final_height_change_m": -0.007415801286697388
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_028_087_077_079_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 286,
+      "reference_lift_m": 0.5353072881698608,
+      "reference_xy_displacement_m": 0.5231513977050781,
+      "reference_final_height_change_m": -0.008460968732833862
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_041_096_079_072_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 412,
+      "reference_lift_m": 0.8836836218833923,
+      "reference_xy_displacement_m": 0.9090712666511536,
+      "reference_final_height_change_m": -0.0065760016441345215
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_071_086_125_083_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 404,
+      "reference_lift_m": 0.7065888047218323,
+      "reference_xy_displacement_m": 2.437535047531128,
+      "reference_final_height_change_m": -0.008003190159797668
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_074_083_072_080_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 382,
+      "reference_lift_m": 0.6871850490570068,
+      "reference_xy_displacement_m": 2.0567667484283447,
+      "reference_final_height_change_m": -0.00790393352508545
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_plasticbox_080_089_079_080_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 438,
+      "reference_lift_m": 0.6697867512702942,
+      "reference_xy_displacement_m": 2.1409716606140137,
+      "reference_final_height_change_m": -0.00875401496887207
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub5_plasticbox_026_127_085_075_100_100_100.pt",
+      "object": "plasticbox",
+      "asset_key": "plasticbox_100_100_100",
+      "raw_frames": 522,
+      "reference_lift_m": 0.7302186489105225,
+      "reference_xy_displacement_m": 0.9391400814056396,
+      "reference_final_height_change_m": -0.00533786416053772
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_083_100_101_078_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 284,
+      "reference_lift_m": 0.6984049677848816,
+      "reference_xy_displacement_m": 0.7796027660369873,
+      "reference_final_height_change_m": -0.03299880772829056
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_084_096_084_082_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 358,
+      "reference_lift_m": 0.7716165781021118,
+      "reference_xy_displacement_m": 1.0793362855911255,
+      "reference_final_height_change_m": -0.003123261034488678
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_087_085_081_081_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 312,
+      "reference_lift_m": 0.7228346467018127,
+      "reference_xy_displacement_m": 0.8240550756454468,
+      "reference_final_height_change_m": -0.0012151077389717102
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_088_082_077_073_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 254,
+      "reference_lift_m": 0.627240002155304,
+      "reference_xy_displacement_m": 0.7829315662384033,
+      "reference_final_height_change_m": -0.03497934341430664
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_089_084_102_087_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 316,
+      "reference_lift_m": 0.6813965439796448,
+      "reference_xy_displacement_m": 0.8191927075386047,
+      "reference_final_height_change_m": -0.001165531575679779
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_090_088_091_073_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 252,
+      "reference_lift_m": 0.5844810009002686,
+      "reference_xy_displacement_m": 0.8479412794113159,
+      "reference_final_height_change_m": -0.04567396640777588
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub10_smallbox_091_073_103_083_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 254,
+      "reference_lift_m": 0.33128154277801514,
+      "reference_xy_displacement_m": 0.6782380938529968,
+      "reference_final_height_change_m": -0.0017402321100234985
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub14_smallbox_027_096_101_086_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 358,
+      "reference_lift_m": 0.911882758140564,
+      "reference_xy_displacement_m": 0.6450214982032776,
+      "reference_final_height_change_m": -0.0007285401225090027
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub14_smallbox_042_086_100_081_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 416,
+      "reference_lift_m": 0.764639139175415,
+      "reference_xy_displacement_m": 2.2966747283935547,
+      "reference_final_height_change_m": -0.0009367018938064575
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub14_smallbox_044_127_080_079_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 384,
+      "reference_lift_m": 0.6699666380882263,
+      "reference_xy_displacement_m": 1.5526047945022583,
+      "reference_final_height_change_m": -0.0011647865176200867
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub14_smallbox_045_097_098_074_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 348,
+      "reference_lift_m": 0.685108482837677,
+      "reference_xy_displacement_m": 1.8053481578826904,
+      "reference_final_height_change_m": -0.0009794160723686218
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_smallbox_039_094_096_077_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 426,
+      "reference_lift_m": 0.7597496509552002,
+      "reference_xy_displacement_m": 2.08064341545105,
+      "reference_final_height_change_m": -0.0009428411722183228
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_smallbox_040_088_084_076_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 438,
+      "reference_lift_m": 0.7365162968635559,
+      "reference_xy_displacement_m": 1.9859063625335693,
+      "reference_final_height_change_m": 0.011447541415691376
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_smallbox_041_077_087_086_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 422,
+      "reference_lift_m": 0.7455466389656067,
+      "reference_xy_displacement_m": 1.9061020612716675,
+      "reference_final_height_change_m": -0.0009069964289665222
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_046_077_101_074_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 520,
+      "reference_lift_m": 0.832798421382904,
+      "reference_xy_displacement_m": 1.9743645191192627,
+      "reference_final_height_change_m": -0.0006081536412239075
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub7_smallbox_051_074_080_078_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 420,
+      "reference_lift_m": 0.800556480884552,
+      "reference_xy_displacement_m": 1.9877222776412964,
+      "reference_final_height_change_m": -0.0007405579090118408
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_smallbox_042_124_081_074_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 366,
+      "reference_lift_m": 0.8134039640426636,
+      "reference_xy_displacement_m": 2.293318748474121,
+      "reference_final_height_change_m": -3.203749656677246e-07
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_smallbox_043_082_098_084_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 326,
+      "reference_lift_m": 0.7579429149627686,
+      "reference_xy_displacement_m": 2.3903326988220215,
+      "reference_final_height_change_m": -0.0007223784923553467
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_smallbox_044_075_087_073_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 342,
+      "reference_lift_m": 0.8401119112968445,
+      "reference_xy_displacement_m": 2.1903393268585205,
+      "reference_final_height_change_m": -0.0030159875750541687
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_smallbox_045_086_124_079_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 348,
+      "reference_lift_m": 0.7836931943893433,
+      "reference_xy_displacement_m": 2.248702049255371,
+      "reference_final_height_change_m": 0.013981357216835022
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_smallbox_046_085_082_085_100_100_100.pt",
+      "object": "smallbox",
+      "asset_key": "smallbox_100_100_100",
+      "raw_frames": 288,
+      "reference_lift_m": 0.7143036723136902,
+      "reference_xy_displacement_m": 1.2920544147491455,
+      "reference_final_height_change_m": -0.0004292204976081848
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub14_suitcase_010_094_098_079_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 346,
+      "reference_lift_m": 0.5966920852661133,
+      "reference_xy_displacement_m": 0.6889673471450806,
+      "reference_final_height_change_m": -0.07537859678268433
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub15_suitcase_051_095_088_080_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 392,
+      "reference_lift_m": 0.5216124653816223,
+      "reference_xy_displacement_m": 1.1222971677780151,
+      "reference_final_height_change_m": -0.010266870260238647
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_005_088_082_083_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 420,
+      "reference_lift_m": 0.5006103515625,
+      "reference_xy_displacement_m": 2.1275644302368164,
+      "reference_final_height_change_m": -0.028265833854675293
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_007_085_078_074_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 340,
+      "reference_lift_m": 0.3902936279773712,
+      "reference_xy_displacement_m": 1.2757937908172607,
+      "reference_final_height_change_m": -0.04121720790863037
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub17_suitcase_009_094_101_080_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 366,
+      "reference_lift_m": 0.6529446840286255,
+      "reference_xy_displacement_m": 1.9584299325942993,
+      "reference_final_height_change_m": -0.03371930122375488
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_011_079_103_083_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 416,
+      "reference_lift_m": 0.5700924396514893,
+      "reference_xy_displacement_m": 1.7577557563781738,
+      "reference_final_height_change_m": -0.05226653814315796
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_012_093_088_084_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 440,
+      "reference_lift_m": 0.5926064252853394,
+      "reference_xy_displacement_m": 1.9910777807235718,
+      "reference_final_height_change_m": -0.06237226724624634
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_015_072_102_081_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 436,
+      "reference_lift_m": 0.5868359804153442,
+      "reference_xy_displacement_m": 1.3249835968017578,
+      "reference_final_height_change_m": -0.06899398565292358
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_028_092_083_081_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 444,
+      "reference_lift_m": 0.7481560707092285,
+      "reference_xy_displacement_m": 0.6183364391326904,
+      "reference_final_height_change_m": -0.030358821153640747
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_047_097_082_072_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 412,
+      "reference_lift_m": 0.7333935499191284,
+      "reference_xy_displacement_m": 0.5225410461425781,
+      "reference_final_height_change_m": -0.024380385875701904
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_048_093_073_074_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 360,
+      "reference_lift_m": 0.7962881326675415,
+      "reference_xy_displacement_m": 0.5130515098571777,
+      "reference_final_height_change_m": -0.026422232389450073
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_049_099_079_073_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 358,
+      "reference_lift_m": 0.8980048894882202,
+      "reference_xy_displacement_m": 0.8605446219444275,
+      "reference_final_height_change_m": -0.027714520692825317
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_070_075_098_082_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 394,
+      "reference_lift_m": 0.6008205413818359,
+      "reference_xy_displacement_m": 1.6507161855697632,
+      "reference_final_height_change_m": -0.0333496630191803
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_071_087_084_073_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 386,
+      "reference_lift_m": 0.6478714942932129,
+      "reference_xy_displacement_m": 2.1017086505889893,
+      "reference_final_height_change_m": -0.026717185974121094
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_073_095_087_084_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 410,
+      "reference_lift_m": 0.8694689869880676,
+      "reference_xy_displacement_m": 2.154486894607544,
+      "reference_final_height_change_m": -0.029047787189483643
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub1_suitcase_077_096_103_081_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 414,
+      "reference_lift_m": 0.6820248365402222,
+      "reference_xy_displacement_m": 1.9527380466461182,
+      "reference_final_height_change_m": -0.025845825672149658
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub4_suitcase_009_084_097_078_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 524,
+      "reference_lift_m": 0.5762796401977539,
+      "reference_xy_displacement_m": 2.503556489944458,
+      "reference_final_height_change_m": -0.0198918879032135
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub4_suitcase_042_083_082_082_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 500,
+      "reference_lift_m": 0.6791210174560547,
+      "reference_xy_displacement_m": 1.6485332250595093,
+      "reference_final_height_change_m": -0.01593145728111267
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub4_suitcase_044_098_074_087_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 538,
+      "reference_lift_m": 0.6559798121452332,
+      "reference_xy_displacement_m": 2.008734703063965,
+      "reference_final_height_change_m": -0.01597374677658081
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub4_suitcase_047_087_090_079_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 592,
+      "reference_lift_m": 0.6948839426040649,
+      "reference_xy_displacement_m": 2.1458184719085693,
+      "reference_final_height_change_m": -0.01777324080467224
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_008_072_091_081_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 382,
+      "reference_lift_m": 0.5789583921432495,
+      "reference_xy_displacement_m": 1.4178375005722046,
+      "reference_final_height_change_m": -0.06590643525123596
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_009_092_090_082_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 418,
+      "reference_lift_m": 0.5817251205444336,
+      "reference_xy_displacement_m": 1.8403286933898926,
+      "reference_final_height_change_m": -0.06780204176902771
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_010_074_095_082_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 446,
+      "reference_lift_m": 0.5837010145187378,
+      "reference_xy_displacement_m": 1.6909573078155518,
+      "reference_final_height_change_m": -0.06811448931694031
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_011_077_091_084_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 448,
+      "reference_lift_m": 0.6478247046470642,
+      "reference_xy_displacement_m": 1.541398525238037,
+      "reference_final_height_change_m": -0.06587883830070496
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_013_077_098_086_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 406,
+      "reference_lift_m": 0.7776145935058594,
+      "reference_xy_displacement_m": 1.650588870048523,
+      "reference_final_height_change_m": -0.024709492921829224
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_014_094_089_086_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 406,
+      "reference_lift_m": 0.9126501083374023,
+      "reference_xy_displacement_m": 1.0631630420684814,
+      "reference_final_height_change_m": -0.027122855186462402
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_029_091_095_077_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 344,
+      "reference_lift_m": 0.860584020614624,
+      "reference_xy_displacement_m": 0.5540996789932251,
+      "reference_final_height_change_m": 0.0014348924160003662
+    },
+    {
+      "motion": "InterAct/OMOMO_retarget_aug/sub8_suitcase_042_090_073_087_100_100_100.pt",
+      "object": "suitcase",
+      "asset_key": "suitcase_100_100_100",
+      "raw_frames": 338,
+      "reference_lift_m": 0.5676503777503967,
+      "reference_xy_displacement_m": 1.9679404497146606,
+      "reference_final_height_change_m": -0.04001617431640625
+    }
+  ],
+  "carry_and_place_success": "strict placement success plus observed lift >=.2 m above reference start and >=10 hand-contact controls; derived separately from the preregistered terminal task-success metric",
+  "point_fixed_grid_sampling": true,
+  "development_original_families": [
+    "sub10_smallbox_085",
+    "sub10_smallbox_086",
+    "sub12_plasticbox_052",
+    "sub15_suitcase_010",
+    "sub15_suitcase_028",
+    "sub16_largebox_026",
+    "sub16_plasticbox_027",
+    "sub16_plasticbox_043",
+    "sub16_plasticbox_047",
+    "sub17_suitcase_010",
+    "sub1_plasticbox_073",
+    "sub1_suitcase_072",
+    "sub1_suitcase_076",
+    "sub7_smallbox_048",
+    "sub8_largebox_042",
+    "sub8_largebox_043",
+    "sub8_largebox_046"
+  ],
+  "inspected_reference_clips": 1607,
+  "cases_by_object": {
+    "largebox": 28,
+    "plasticbox": 23,
+    "smallbox": 21,
+    "suitcase": 28
+  },
+  "eligible_families_by_object": {
+    "largebox": 45,
+    "plasticbox": 23,
+    "smallbox": 21,
+    "suitcase": 48
+  }
+}

@@ -307,6 +307,11 @@ class UltraDistillObjV3RL(UltraG1Retarget):
         self.rl_points_goal_fraction = float(rl_cfg.get("points_goal_fraction", 0.0))
         self.rl_feasible_object_goals = bool(rl_cfg.get("feasible_object_goals", False))
         self.rl_root_xy_reward = bool(rl_cfg.get("root_xy_reward", False))
+        self.rl_goal_deadline_penalty = bool(rl_cfg.get("goal_deadline_penalty", False))
+        self.distill_full_track_fraction = float(rl_cfg.get("distill_full_track_fraction", 0.0))
+        self.distill_point_goal_fraction = float(rl_cfg.get("distill_point_goal_fraction", 0.0))
+        assert 0 <= self.distill_full_track_fraction <= 1
+        assert 0 <= self.distill_point_goal_fraction <= 1 - self.distill_full_track_fraction
         self.is_distill = True
 
         # Larger initialization noise for RL envs (humanoid root and object)
@@ -481,6 +486,25 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             cam_rot = root_states[:, 3:7]
         return cam_pos, cam_rot
 
+    def _apply_distillation_modes(self, env_ids):
+        """Reserve reference-supervised environments for the two deployment modes.
+
+        Only observation masks change. These environments keep their original
+        reference goals and privileged teacher, never the PPO random goals.
+        Fractions are relative to the distillation quarter, not all environments.
+        """
+        count = self.num_envs // 4
+        full_count = int(count * self.distill_full_track_fraction)
+        point_count = int(count * self.distill_point_goal_fraction)
+        full_ids = env_ids[env_ids < full_count]
+        point_ids = env_ids[(env_ids >= full_count) & (env_ids < full_count + point_count)]
+        for name in ("keep_obj_point_mask", "keep_obj_trans_mask", "keep_obj_rot_mask",
+                     "keep_obj_pos_mask", "keep_human_move_mask", "keep_global_goal_mask",
+                     "keep_local_goal_mask", "keep_goal_mask"):
+            getattr(self, name)[full_ids] = True
+            getattr(self, name)[point_ids] = name in (
+                "keep_obj_point_mask", "keep_obj_trans_mask", "keep_human_move_mask", "keep_goal_mask")
+
     def _maybe_flip_keep_masks(self, env_ids):
         """Occasionally toggle keep masks to avoid fixed patterns at inference."""
         if self.keep_mask_flip_prob <= 0 or env_ids.numel() == 0:
@@ -504,6 +528,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
     def _finalize_student_obs(self, env_ids, obs, obs_shape, task_obs_size):
         """Expose mask bits, reorder goal segments, and leave raw observations intact."""
         self._maybe_flip_keep_masks(env_ids)
+        self._apply_distillation_modes(env_ids)
         mask_features = []
 
         def append_mask(mask_tensor, length):
@@ -1297,6 +1322,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                     getattr(self, name)[point_goal_ids] = keep
 
 
+        self._apply_distillation_modes(env_ids)
         # if self.object_history_buf is not None and env_ids.shape[0] > 0:
         #     self.object_history_buf[env_ids] = 0.0
         if env_ids.shape[0] > 0:
@@ -1512,7 +1538,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
                 # picks it up). _compute_reward runs before _compute_reset, so the
                 # reward computed there didn't account for this step's termination.
                 reward_terminate_buf = self._terminate_buf.clone()
-                goal_deviation = obj_too_far | root_too_far
+                goal_deviation = (obj_too_far | root_too_far) & self.rl_goal_deadline_penalty
                 reward_terminate_buf[rl_mask] = torch.where(
                     goal_deviation[rl_mask],
                     torch.ones_like(reward_terminate_buf[rl_mask]),

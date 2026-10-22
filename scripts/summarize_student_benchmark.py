@@ -35,8 +35,9 @@ def main():
                               seed=manifest["rollout_seed"], checkpoint=manifest["checkpoint"],
                               trajectory=str(path.relative_to(ROOT)))
                 results.append(report)
-    assert len(results) == 80
-    assert len({(r["engine"], r["motion"], r["mode"]) for r in results}) == 80
+    expected_rollouts = 2 * len(manifest["motions"]) * len(manifest["modes"])
+    assert len(results) == expected_rollouts
+    assert len({(r["engine"], r["motion"], r["mode"]) for r in results}) == expected_rollouts
     assert all(r["all_finite"] for r in results)
     for row in manifest["motions"]:
         for mode in manifest["modes"]:
@@ -71,7 +72,7 @@ def main():
     import yaml
     assert all(yaml.safe_load((BASE / 'gym' / kind / 'evaluation.yaml').read_text())['env']['pointFixedGridSampling'] is True
                for kind in sorted({r['object'] for r in results}))
-    assert sum(map(len, originals)) == 80
+    assert sum(map(len, originals)) == expected_rollouts
     assert all(r["privileged_encoder_calls"] == 0 for rows in originals for r in rows)
     if manifest.get("policy_architecture") == "v3_rl":
         assert all(r.get("policy_architecture") == "v3_rl" and r.get("strict_all_policy_weights_verified") is True
@@ -129,7 +130,7 @@ def main():
         axes[2].bar(x + shift, [r['mean_box_trajectory_rmse_m'] for r in a], .34, label=engine, color=color)
     for ax in axes:
         ax.set_xticks(x); ax.set_xticklabels(labels); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
-    axes[0].set(title='Task success (n=20 per bar)', ylabel='Percent', ylim=(0, 105))
+    axes[0].set(title=f'Task success (n={len(manifest["motions"])} per bar)', ylabel='Percent', ylim=(0, 105))
     axes[1].set(title='Lift, release and stable placement', ylabel='Percent', ylim=(0, 105))
     axes[2].set(title='Mean box trajectory RMSE', ylabel='Meters')
     axes[0].legend()
