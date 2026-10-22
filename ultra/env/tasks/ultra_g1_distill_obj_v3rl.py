@@ -353,7 +353,7 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             r_ids = torch.where(rl_mask)[0]
             rl_noise = self.rl_init_noise_std
             root_pos_new[r_ids] = _randn_like(root_pos[r_ids], rl_noise["root_pos"])
-            root_pos_new[r_ids][..., 2:3] = root_pos[r_ids][..., 2:3] + 0.01  # small z offset
+            root_pos_new[r_ids, 2:3] = root_pos[r_ids, 2:3] + 0.01  # small z offset
             root_rot_new[r_ids] = _perturb_quat(root_rot[r_ids], rl_noise["root_rot"])
             # Use default noise for velocities and dof
             root_vel_new[r_ids] = _randn_like(root_vel[r_ids], noise["root_vel"])
@@ -403,6 +403,15 @@ class UltraDistillObjV3RL(UltraG1Retarget):
             obj_pos_new[r_ids] = _randn_like(obj_pos[r_ids], rl_noise["target_pos"])
             # obj_pos_new[r_ids, 2:3] = obj_pos[r_ids, 2:3] + 0.01  # small z offset
             obj_rot_new[r_ids] = _perturb_quat(obj_rot[r_ids], rl_noise["target_rot"])
+
+        # Bound the perturbed initial collision geometry above the ground.
+        if rl_mask.any():
+            ids = self.object_id[self.data_id[env_ids[r_ids]]]
+            corners = self.object_corners[ids]
+            rotations = obj_rot_new[r_ids, None, :].expand(-1, corners.shape[1], -1)
+            rotated = torch_utils.quat_rotate(rotations.reshape(-1, 4), corners.reshape(-1, 3)).reshape_as(corners)
+            floor = -rotated[..., 2].amin(dim=1) + 0.01
+            obj_pos_new[r_ids, 2] = torch.maximum(obj_pos_new[r_ids, 2], floor)
 
         self._target_states[env_ids, :3] = obj_pos_new
         self._target_states[env_ids, 3:7] = obj_rot_new

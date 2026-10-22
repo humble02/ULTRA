@@ -45,6 +45,9 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
         self.ppo_target_kl = float(config.get('ppo_target_kl', 0.0))
         self.actor_warmup_epochs = int(config.get('actor_warmup_epochs', 100))
         self.actor_ramp_epochs = max(1, int(config.get('actor_ramp_epochs', 100)))
+        # A resumed RL checkpoint has already completed its actor warmup.
+        # Keep the original schedule origin when continuing that experiment.
+        self.actor_schedule_start_epoch = config.get('actor_schedule_start_epoch')
         if self.is_adaptive_lr:
             self.scheduler.max_lr = float(config.get('lr_max', self.scheduler.max_lr))
             self.scheduler.min_lr = float(config.get('lr_min', self.scheduler.min_lr))
@@ -683,9 +686,9 @@ class UltraAgentDistill(ultra_agent.UltraAgent):
             progress_smooth = min(max(0, self.epoch_num - 500) / 3000, 1)
             smooth_coeff = 0.0001 + (0.001 - 0.0001) * (1 - torch.cos(torch.tensor(progress_smooth * 3.14159265))) / 2
 
-            # RL loss coefficient schedule based on epochs since training started
-            # This accounts for checkpoint resumption via epoch_num_start
-            epochs_since_start = self.epoch_num - self.epoch_num_start
+            schedule_start = (self.epoch_num_start if self.actor_schedule_start_epoch is None
+                              else int(self.actor_schedule_start_epoch))
+            epochs_since_start = self.epoch_num - schedule_start
 
             # Actor loss: disabled initially, ramp up from 0 to 1 over epochs 100-200 since start
             actor_coeff = min(max(0, epochs_since_start - self.actor_warmup_epochs) / self.actor_ramp_epochs, 1)

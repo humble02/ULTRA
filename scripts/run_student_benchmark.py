@@ -56,7 +56,8 @@ def training_epoch(log=None):
     return int(matches[-1]) if matches else None
 
 
-def prepare(base, epoch, checkpoint=None, policy_architecture="v2_distill", training_log=None, initial_student_epoch=10000):
+def prepare(base, epoch, checkpoint=None, policy_architecture="v2_distill", training_log=None, initial_student_epoch=10000,
+            finetune_restart_epoch=None):
     base.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((OLD / "manifest.json").read_text())
     manifest.update(epoch=epoch,
@@ -72,6 +73,10 @@ def prepare(base, epoch, checkpoint=None, policy_architecture="v2_distill", trai
                         training_log="output/reproduction/finetune_from_10000_checkpointed.log")
     if training_log is not None:
         manifest["training_log"] = str(training_log.resolve().relative_to(ROOT))
+    if finetune_restart_epoch is not None:
+        assert initial_student_epoch <= finetune_restart_epoch <= epoch
+        manifest.update(finetune_restart_epoch=finetune_restart_epoch,
+                        updates_since_restart=epoch - finetune_restart_epoch)
     path = base / "manifest.json"
     if path.exists():
         assert json.loads(path.read_text()) == manifest, "Existing benchmark manifest differs"
@@ -119,11 +124,13 @@ def main():
     parser.add_argument("--policy-architecture", choices=["v2_distill", "v3_rl"], default="v2_distill")
     parser.add_argument("--training-log", type=Path, help="Log for the training run being evaluated")
     parser.add_argument("--initial-student-epoch", type=int, default=10000)
+    parser.add_argument("--finetune-restart-epoch", type=int)
     args = parser.parse_args()
     os.chdir(ROOT)
     base = args.base.resolve()
     assert base.is_relative_to(ROOT) if hasattr(base, "is_relative_to") else str(base).startswith(str(ROOT) + "/")
-    manifest = prepare(base, args.epoch, args.checkpoint, args.policy_architecture, args.training_log, args.initial_student_epoch)
+    manifest = prepare(base, args.epoch, args.checkpoint, args.policy_architecture, args.training_log,
+                       args.initial_student_epoch, args.finetune_restart_epoch)
     if args.prepare_only:
         print(base, flush=True)
         return

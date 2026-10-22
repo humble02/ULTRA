@@ -1,0 +1,88 @@
+{
+  "scope": "Production reset replay on CPU and three actual 8-environment GPU PPO updates; no success-rate claim.",
+  "initialization": {
+    "sample_count": 5120,
+    "seed": 42,
+    "motions": 20,
+    "sample_design": "256 samples per benchmark motion, 26 forced initial frames and 230 uniformly sampled frames; CPU production-reset replay, not live-training prevalence or policy performance",
+    "geometry": "world-space minimum of training asset bounding-box corners; conservative floor clearance bound",
+    "reference_box_bounds_below_floor_1cm": 471,
+    "reference_mesh_below_floor_1cm": 0,
+    "before_fix": {
+      "root_z_error_std_m": 0.20366813242435455,
+      "root_z_error_abs_max_m": 0.6871055960655212,
+      "box_bounds_below_floor_1cm": 1578,
+      "box_bounds_below_floor_5cm": 1323,
+      "box_min_clearance_m": -0.8319505453109741,
+      "initial_frame_samples": 536,
+      "initial_frame_box_bounds_below_floor_1cm": 255,
+      "relative_robot_object_displacement_error_mean_m": 0.4521072804927826,
+      "box_mesh_below_floor_1cm": 1525,
+      "box_mesh_below_floor_5cm": 1279,
+      "box_mesh_min_clearance_m": -0.8200971484184265,
+      "initial_frame_box_mesh_below_floor_1cm": 242
+    },
+    "after_fix": {
+      "root_z_error_std_m": 0.0,
+      "root_z_error_abs_max_m": 0.0,
+      "box_bounds_below_floor_1cm": 0,
+      "box_bounds_below_floor_5cm": 0,
+      "box_min_clearance_m": 0.009999990463256836,
+      "initial_frame_samples": 536,
+      "initial_frame_box_bounds_below_floor_1cm": 0,
+      "relative_robot_object_displacement_error_mean_m": 0.39176851511001587,
+      "box_mesh_below_floor_1cm": 0,
+      "box_mesh_below_floor_5cm": 0,
+      "box_mesh_min_clearance_m": 0.010076276957988739,
+      "initial_frame_box_mesh_below_floor_1cm": 0
+    },
+    "candidate_noncontiguous_reset_ids_pass": true,
+    "baseline_commit": "9c84f6a",
+    "passed": true
+  },
+  "gpu_resume": {
+    "passed": true,
+    "completed_updates": 3,
+    "reset_checks": {
+      "root_resets": 12,
+      "object_resets": 12,
+      "max_root_height_error_m": 9.313225746154785e-09,
+      "minimum_box_clearance_m": 0.009999990463256836
+    },
+    "resume_checks": {
+      "full_model_verified_exact": true,
+      "optimizer_verified_exact": true,
+      "optimizer_state_entries": 89,
+      "value_normalizer_verified_exact": true,
+      "restored_frame": 32768000,
+      "restored_learning_rate": 1.3333333333333335e-05,
+      "actor_schedule_start_epoch": 6000,
+      "environment_schedule_step": 8000
+    },
+    "rollout_replay": {
+      "mu_max_abs_error": 1.1920928955078125e-07,
+      "negative_logp_max_abs_error": 7.62939453125e-06
+    },
+    "PPO_actor_backward_calls": 6,
+    "PPO_actor_gradient_max_l1": 0.20000001788139343,
+    "actor_warmup_was_not_restarted": true,
+    "not_a_success_rate_evaluation": true
+  },
+  "gpu_first_update": {
+    "passed": true,
+    "epoch": 6501,
+    "relative_rl_epochs": 501,
+    "updates_since_restart": 1,
+    "frozen_parameter_tensors_unchanged": 43,
+    "updated_prior_and_critic_parameters": [
+      "a2c_network.prior_mu_head.0.weight",
+      "a2c_network.prior_mu_head.0.bias",
+      "a2c_network.prior_mu_head.2.weight",
+      "a2c_network.prior_mu_head.2.bias",
+      "a2c_network.critic_value.weight",
+      "a2c_network.critic_value.bias"
+    ],
+    "distillation_env_fraction": 0.25,
+    "all_metrics_finite": true
+  }
+}

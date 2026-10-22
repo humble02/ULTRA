@@ -37,6 +37,22 @@ def enable_checkpointing():
     cls._prior = prior
 
 
+def assert_state_equal(actual, expected, name="state"):
+    """Check complete model/Adam/normalizer state, including scalar metadata."""
+    if torch.is_tensor(expected):
+        assert torch.equal(actual.detach().cpu(), expected.detach().cpu()), name
+    elif isinstance(expected, dict):
+        assert actual.keys() == expected.keys(), name
+        for key in expected:
+            assert_state_equal(actual[key], expected[key], f"{name}.{key}")
+    elif isinstance(expected, (list, tuple)):
+        assert len(actual) == len(expected), name
+        for index, (left, right) in enumerate(zip(actual, expected)):
+            assert_state_equal(left, right, f"{name}[{index}]")
+    else:
+        assert actual == expected, name
+
+
 def verify_cpu(out=None, checkpoint_path=None):
     import contextlib
     import yaml
@@ -135,9 +151,34 @@ def main():
         if not request_path.exists():
             return
         request = json.loads(request_path.read_text())
-        assert self.epoch_num_start == request["initial_student_epoch"]
-        source = torch.load(request["initial_checkpoint"], map_location="cpu")["model"]
+        checkpoint_epoch = request.get("initial_checkpoint_epoch", request["initial_student_epoch"])
+        assert self.epoch_num_start == checkpoint_epoch
+        saved = torch.load(request["initial_checkpoint"], map_location="cpu")
+        assert saved["epoch"] == checkpoint_epoch
+        source = saved["model"]
         current = self.model.state_dict()
+        resume_checks = {}
+        if request.get("resume_optimizer", False):
+            assert_state_equal(current, source, "model")
+            assert_state_equal(self.optimizer.state_dict(), saved["optimizer"], "optimizer")
+            if self.normalize_value:
+                assert_state_equal(self.value_mean_std.state_dict(), saved["reward_mean_std"], "value_normalizer")
+            # UltraAgent.train resets frame to zero after restoring a checkpoint.
+            self.frame = int(saved["frame"])
+            rates = {group["lr"] for group in self.optimizer.param_groups}
+            assert len(rates) == 1
+            self.last_lr = rates.pop()
+            schedule_origin = int(request["actor_schedule_start_epoch"])
+            assert self.actor_schedule_start_epoch == schedule_origin
+            assert schedule_origin <= checkpoint_epoch
+            task = self.vec_env.env.task
+            task.common_step_counter = int(request["initial_environment_steps"])
+            resume_checks = {"full_model_verified_exact": True, "optimizer_verified_exact": True,
+                             "optimizer_state_entries": len(self.optimizer.state),
+                             "value_normalizer_verified_exact": bool(self.normalize_value),
+                             "restored_frame": self.frame, "restored_learning_rate": self.last_lr,
+                             "actor_schedule_start_epoch": schedule_origin,
+                             "environment_schedule_step": task.common_step_counter}
         checked = 0
         for name, value in source.items():
             if ".critic" not in name and ".value" not in name:
@@ -161,9 +202,11 @@ def main():
             observation_checks = {"reserved_points_goal_envs": count, "point_mode_masks_correct": True,
                                   "commands_binary": True}
         path = run / "runtime_initialization_verification.json"
-        path.write_text(json.dumps({"passed": True, "initial_student_epoch": self.epoch_num_start,
+        path.write_text(json.dumps({"passed": True, "initial_student_epoch": request["initial_student_epoch"],
+                                   "initial_checkpoint_epoch": checkpoint_epoch,
                                    "actor_state_entries_verified_exact": checked,
                                    "fresh_rl_optimizer": not bool(self.optimizer.state),
+                                   "resume_checks": resume_checks,
                                    "distillation_envs": int((~self.prior_mask).sum()),
                                    "ppo_envs": int(self.prior_mask.sum()),
                                    "observation_checks": observation_checks}, indent=2) + "\n")
@@ -189,15 +232,19 @@ def main():
             assert any("critic_value" in name for name in changed), changed
             assert metrics["distill_mask_fraction"] == 0.25
             (run / "first_update_verification.json").write_text(json.dumps({
-                "passed": True, "epoch": self.epoch_num, "relative_rl_epochs": self.epoch_num - self.epoch_num_start,
+                "passed": True, "epoch": self.epoch_num,
+                "relative_rl_epochs": self.epoch_num - run_request.get("initial_student_epoch", self.epoch_num_start),
+                "updates_since_restart": self.epoch_num - self.epoch_num_start,
                 "frozen_parameter_tensors_unchanged": len(frozen), "updated_prior_and_critic_parameters": changed,
                 "distillation_env_fraction": metrics["distill_mask_fraction"], "all_metrics_finite": True,
             }, indent=2) + "\n")
             watched.clear()
         data = {"state": "training", "log_epoch": self.epoch_num,
                 "epoch": self.epoch_num, "pid": os.getpid(),
-                "relative_rl_epochs": self.epoch_num - self.epoch_num_start,
-                "initial_student_epoch": self.epoch_num_start,
+                "relative_rl_epochs": self.epoch_num - run_request.get("initial_student_epoch", self.epoch_num_start),
+                "updates_since_restart": self.epoch_num - self.epoch_num_start,
+                "initial_student_epoch": run_request.get("initial_student_epoch", self.epoch_num_start),
+                "initial_checkpoint_epoch": self.epoch_num_start,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "activation_checkpointing": True,
                 "hyperparameter_overrides": run_request.get("hyperparameter_changes_from_released_config", {}),
@@ -226,6 +273,9 @@ def main():
     sys.argv[0] = str(ROOT / "ultra/run_distill.py")
     try:
         runpy.run_path(sys.argv[0], run_name="__main__")
+        data = json.loads(status_path.read_text())
+        data.update(state="completed", updated_at=datetime.now(timezone.utc).isoformat())
+        write_status(data)
     except Exception as error:
         data = json.loads(status_path.read_text())
         data.update(state="failed", error=repr(error), updated_at=datetime.now(timezone.utc).isoformat())

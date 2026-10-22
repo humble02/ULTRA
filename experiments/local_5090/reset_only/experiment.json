@@ -1,0 +1,27 @@
+{
+  "purpose": "Isolate the two verified initialization fixes, continuing the best full-track RL500 checkpoint.",
+  "source_checkpoint": "output/finetune_fixed_6000_20261022/g1_student_finetune/nn/g1_student_finetune_00006500.pth",
+  "source_checkpoint_sha256": "b96e625123f0db4716d9ad835696f896b8756506187a79ae2f5c11af6003b22e",
+  "initial_student_epoch": 6000,
+  "initial_checkpoint_epoch": 6500,
+  "changes": [
+    "correct advanced-index root-height assignment",
+    "bound rotated box initial geometry above floor"
+  ],
+  "resume": "model, critic, value normalizer, Adam states, LR, frames, actor warmup origin, and curriculum step; reset simulator episodes because source checkpoint has no simulator state",
+  "new_update_evaluations": [
+    200,
+    500,
+    1000,
+    1500,
+    2000
+  ],
+  "periodic_interval_after_first_500": 500,
+  "prior_and_privileged_distillation": "Deployable prior remains trainable; privileged residual branch remains active in the distillation quarter under the inherited freeze settings.",
+  "deferred_ablation_candidates": [
+    "distillation deployment-mode coverage",
+    "initialization/goal noise curriculum",
+    "carry/lift/release reward shaping"
+  ],
+  "success_improvement_not_yet_measured": true
+}

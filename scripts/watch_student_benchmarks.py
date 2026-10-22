@@ -29,6 +29,7 @@ def update_history(run, report, directory):
     history[str(epoch)] = {
         "epoch": epoch, "checkpoint_sha256": report["checkpoint_sha256"],
         "initial_student_epoch": report["manifest"].get("initial_student_epoch", 0),
+        "finetune_restart_epoch": report["manifest"].get("finetune_restart_epoch"),
         "policy_architecture": report["manifest"].get("policy_architecture", "v2_distill"),
         "cohort": report["manifest"]["motions"], "summary": report["summary"],
         "report": str(directory.relative_to(ROOT)), "completed_at": now(),
@@ -40,6 +41,8 @@ def update_history(run, report, directory):
             for mode, metrics in modes.items():
                 count = metrics["episodes"]
                 rows.append(dict(epoch=value["epoch"], training_epochs=value["epoch"] - value.get("initial_student_epoch", 0),
+                                 updates_since_restart=(value["epoch"] - value["finetune_restart_epoch"]
+                                                        if value.get("finetune_restart_epoch") is not None else None),
                                  engine=engine, mode=mode, episodes=count,
                                  task_success_rate=metrics["task_success_rate"],
                                  strict_placement_success_rate=metrics["strict_placement_successes"] / count,
@@ -78,6 +81,10 @@ def main():
     parser.add_argument("--checkpoint-dir", type=Path, required=True)
     parser.add_argument("--interval", type=int, default=2000)
     parser.add_argument("--initial-student-epoch", type=int, default=0)
+    parser.add_argument("--finetune-restart-epoch", type=int)
+    parser.add_argument("--first-evaluation-epoch", type=int)
+    parser.add_argument("--early-epochs", type=int, nargs="*", default=[],
+                        help="Additional exact checkpoint epochs before the periodic schedule")
     parser.add_argument("--policy-architecture", choices=["v2_distill", "v3_rl"], default="v2_distill")
     parser.add_argument("--checkpoint-prefix", default="g1_student_vae")
     parser.add_argument("--training-status-name", default="training_status.json")
@@ -90,13 +97,24 @@ def main():
     lock = (run / "evaluation_watcher.lock").open("w")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     expected = json.loads((run / "source_sha256.json").read_text())
+    first_epoch = args.first_evaluation_epoch or args.initial_student_epoch + args.interval
+    assert first_epoch > args.initial_student_epoch
+    early_epochs = sorted(set(args.early_epochs))
+    assert all(args.initial_student_epoch < e < first_epoch for e in early_epochs)
+    if args.finetune_restart_epoch is not None:
+        assert args.initial_student_epoch <= args.finetune_restart_epoch < min(early_epochs + [first_epoch])
     state = dict(pid=os.getpid(), interval=args.interval, started_at=now(), completed_epochs=[],
+                 first_evaluation_epoch=first_epoch, early_epochs=early_epochs,
+                 finetune_restart_epoch=args.finetune_restart_epoch,
                  initial_student_epoch=args.initial_student_epoch, policy_architecture=args.policy_architecture)
     state_path = run / "evaluation_status.json"
-    epoch = args.initial_student_epoch + args.interval
+    pending_early = list(early_epochs)
+    epoch = pending_early.pop(0) if pending_early else first_epoch
 
     def status(phase, **extra):
         state.update(state=phase, target_epoch=epoch, target_training_epochs=epoch - args.initial_student_epoch, updated_at=now(),
+                     target_updates_since_restart=(epoch - args.finetune_restart_epoch
+                                                   if args.finetune_restart_epoch is not None else None),
                      current_training_epoch=training_epoch(run / "training.log"), **extra)
         write_json(state_path, state)
 
@@ -133,6 +151,8 @@ def main():
                                "--training-log", str(run / "training.log"),
                                "--policy-architecture", args.policy_architecture,
                                "--initial-student-epoch", str(args.initial_student_epoch)]
+                    if args.finetune_restart_epoch is not None:
+                        command += ["--finetune-restart-epoch", str(args.finetune_restart_epoch)]
                     status("evaluating", attempt=attempt, report_dir=str(candidate), command=command)
                     with (candidate / "runner.log").open("w") as log:
                         process = subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
@@ -155,7 +175,7 @@ def main():
             update_history(run, report, report_dir)
             state["completed_epochs"].append(epoch)
             status("completed_checkpoint", last_completed_epoch=epoch, latest_summary=report["summary"])
-            epoch += args.interval
+            epoch = pending_early.pop(0) if pending_early else (first_epoch if epoch < first_epoch else epoch + args.interval)
     except BaseException as error:
         status("failed", error=repr(error))
         raise

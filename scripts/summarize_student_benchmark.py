@@ -98,6 +98,7 @@ def main():
     output = {"manifest": manifest, "summary": groups, "by_object": by_object,
               "policy_architecture": manifest.get("policy_architecture", "v2_distill"),
               "rl_finetune_epochs": manifest.get("rl_finetune_epochs", 0),
+              "updates_since_restart": manifest.get("updates_since_restart"),
               "checkpoint_metadata": checkpoint_metadata,
               "unique_original_motion_families": len({'_'.join(Path(r['motion']).stem.split('_')[:3]) for r in manifest['motions']}),
               "checkpoint_sha256": sha(checkpoint), "manifest_sha256": sha(BASE / "manifest.json"),
@@ -134,6 +135,8 @@ def main():
     axes[0].legend()
     label = (f"RL finetune +{manifest['rl_finetune_epochs']} (checkpoint epoch {checkpoint_metadata['epoch']})"
              if manifest.get("policy_architecture") == "v3_rl" else f"Student epoch {checkpoint_metadata['epoch']}")
+    if manifest.get("updates_since_restart") is not None:
+        label += f" | +{manifest['updates_since_restart']} since restart"
     fig.suptitle(f"{label} | matched nominal object inertia | other sim differences retained")
     fig.savefig(BASE / 'comparison.png', dpi=180); plt.close(fig)
     print(json.dumps(groups, indent=2))
